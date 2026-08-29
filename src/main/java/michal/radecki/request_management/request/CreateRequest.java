@@ -1,4 +1,4 @@
-package michal.radecki.request_management;
+package michal.radecki.request_management.request;
 
 import jakarta.validation.constraints.NotBlank;
 

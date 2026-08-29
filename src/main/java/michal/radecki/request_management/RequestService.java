@@ -1,9 +1,15 @@
 package michal.radecki.request_management;
 
+import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import michal.radecki.request_management.exception.RequestCannotBeDeletedException;
+import michal.radecki.request_management.exception.RequestNotFoundException;
+import michal.radecki.request_management.request.CreateRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
+
+import java.util.Optional;
 
 @Service
 @Validated
@@ -16,5 +22,22 @@ public class RequestService {
         RequestEntity entity = new RequestEntity(request.name(), request.body(), RequestState.CREATED);
         entity = requestRepository.save(entity);
         return entity.getId();
+    }
+
+    @Transactional
+    void deleteRequest(Integer requestId, String reason) {
+        Optional<RequestEntity> requestEntityOpt = requestRepository.findById(requestId);
+        if (requestEntityOpt.isEmpty()) {
+           throw new RequestNotFoundException(requestId);
+        } else {
+            RequestEntity requestEntity = requestEntityOpt.get();
+            if (requestEntity.getState() != RequestState.CREATED) {
+                throw new RequestCannotBeDeletedException("Request with id " + requestId +
+                        " cannot be deleted because it is in " + requestEntity.getState() + " state" +
+                        ", not in CREATED state");
+            }
+            requestEntity.setState(RequestState.DELETED);
+            requestEntity.setReason(reason);
+        }
     }
 }

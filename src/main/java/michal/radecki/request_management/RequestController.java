@@ -2,7 +2,11 @@ package michal.radecki.request_management;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import michal.radecki.request_management.request.CreateRequest;
+import michal.radecki.request_management.request.DeleteRequest;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -18,5 +22,11 @@ public class RequestController {
     @ResponseStatus(HttpStatus.CREATED)
     public RequestCreatedResponse createRequest(@RequestBody @Valid CreateRequest request) {
         return new RequestCreatedResponse(requestService.createRequest(request));
+    }
+
+    @DeleteMapping("{id}")
+    @ResponseStatus(HttpStatus.OK)
+    public void deleteRequest(@PathVariable Integer id, @RequestBody @Valid DeleteRequest request) {
+        requestService.deleteRequest(id, request.reason());
     }
 }

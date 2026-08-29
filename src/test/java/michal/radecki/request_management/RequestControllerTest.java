@@ -1,5 +1,8 @@
 package michal.radecki.request_management;
 
+import michal.radecki.request_management.request.CreateRequest;
+import michal.radecki.request_management.request.DeleteRequest;
+import michal.radecki.request_management.response.CustomErrorResponse;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -12,6 +15,7 @@ import tools.jackson.databind.ObjectMapper;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
 @SpringBootTest
@@ -105,5 +109,67 @@ public class RequestControllerTest {
         // then
         assertThat(result.getResponse().getStatus()).isEqualTo(400);
         assertThat(result.getResponse().getErrorMessage()).isEqualTo("Invalid request content.");
+    }
+
+    @Test
+    void when_trying_to_delete_request_in_created_state_then_should_set_state_to_deleted() throws Exception {
+        // given
+        CreateRequest createRequest = new CreateRequest("requestName", "requestBody");
+        MvcResult createResult = mockMvc.perform(post("/create")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(createRequest))
+        ).andReturn();
+        RequestCreatedResponse requestCreatedResponse = objectMapper.readValue(createResult.getResponse().getContentAsString(), RequestCreatedResponse.class);
+        Integer requestId = requestCreatedResponse.id();
+        String reason = "request is no longer needed";
+        DeleteRequest deleteRequest = new DeleteRequest(reason);
+        // when
+        MvcResult deleteResult = mockMvc.perform(delete("/" + requestId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(deleteRequest))
+        ).andReturn();
+        // then
+        assertThat(deleteResult.getResponse().getStatus()).isEqualTo(200);
+        Optional<RequestEntity> requestEntityOpt = requestRepository.findById(requestId);
+        assertThat(requestEntityOpt).isPresent();
+        RequestEntity requestEntity = requestEntityOpt.get();
+        assertThat(requestEntity.getState()).isEqualTo(RequestState.DELETED);
+        assertThat(requestEntity.getReason()).isEqualTo(reason);
+    }
+
+    @Test
+    void when_trying_to_delete_request_in_different_state_than_created_then_should_return_bad_request_response() throws Exception {
+        // given
+        CreateRequest createRequest = new CreateRequest("requestName", "requestBody");
+        MvcResult createResult = mockMvc.perform(post("/create")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(createRequest))
+        ).andReturn();
+        RequestCreatedResponse requestCreatedResponse = objectMapper.readValue(createResult.getResponse().getContentAsString(), RequestCreatedResponse.class);
+        Integer requestId = requestCreatedResponse.id();
+        String reason = "request is no longer needed";
+        DeleteRequest deleteRequest = new DeleteRequest(reason);
+        // when
+        MvcResult deleteResult = mockMvc.perform(delete("/" + requestId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(deleteRequest))
+        ).andReturn();
+        // then
+        assertThat(deleteResult.getResponse().getStatus()).isEqualTo(200);
+        Optional<RequestEntity> requestEntityOpt = requestRepository.findById(requestId);
+        assertThat(requestEntityOpt).isPresent();
+        RequestEntity requestEntity = requestEntityOpt.get();
+        assertThat(requestEntity.getState()).isEqualTo(RequestState.DELETED);
+        assertThat(requestEntity.getReason()).isEqualTo(reason);
+        // when
+        MvcResult deleteResult2 = mockMvc.perform(delete("/" + requestId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(deleteRequest))
+        ).andReturn();
+        // then
+        assertThat(deleteResult2.getResponse().getStatus()).isEqualTo(400);
+        CustomErrorResponse errorResponse = objectMapper.readValue(deleteResult2.getResponse().getContentAsString(), CustomErrorResponse.class);
+        assertThat(errorResponse.message()).isEqualTo("Request with id " + requestId +
+                " cannot be deleted because it is in DELETED state, not in CREATED state");
     }
 }
