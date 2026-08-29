@@ -1,6 +1,6 @@
 package michal.radecki.request_management;
 
-import michal.radecki.request_management.exception.RequestCannotBeDeletedException;
+import michal.radecki.request_management.exception.RequestCannotBeProcessedException;
 import michal.radecki.request_management.exception.RequestNotFoundException;
 import michal.radecki.request_management.request.CreateRequest;
 import org.junit.jupiter.api.BeforeEach;
@@ -66,7 +66,7 @@ public class RequestServiceTest {
             "REJECTED",
             "ACCEPTED"
     })
-    void when_trying_to_delete_in_state_different_than_created_then_should_throw_exception(RequestState state) {
+    void when_trying_to_delete_request_in_state_different_than_created_then_should_throw_exception(RequestState state) {
         //given
         Integer id = 127345;
         String reason = "request is no longer needed";
@@ -74,7 +74,7 @@ public class RequestServiceTest {
         requestEntity.setId(id);
         when(mockedRequestRepository.findById(id)).thenReturn(Optional.of(requestEntity));
         //when //then
-        RequestCannotBeDeletedException exception = assertThrows(RequestCannotBeDeletedException.class,
+        RequestCannotBeProcessedException exception = assertThrows(RequestCannotBeProcessedException.class,
                 () -> requestService.deleteRequest(id, reason));
         assertThat(exception.getMessage()).isEqualTo("Request with id " + id +
                 " cannot be deleted because it is in " + state.name() + " state" +
@@ -91,5 +91,50 @@ public class RequestServiceTest {
         RequestNotFoundException exception = assertThrows(RequestNotFoundException.class,
                 () -> requestService.deleteRequest(id, reason));
         assertThat(exception.getMessage()).isEqualTo("Request with id " + id + " not found");
+    }
+
+    @Test
+    void when_trying_to_verify_request_in_created_state_then_should_set_state_to_verified() {
+        //given
+        Integer id = 127345;
+        RequestEntity requestEntity = new RequestEntity("requestName", "requestBody", RequestState.CREATED);
+        requestEntity.setId(id);
+        when(mockedRequestRepository.findById(id)).thenReturn(Optional.of(requestEntity));
+        //when //then
+        assertDoesNotThrow(() -> requestService.verifyRequest(id));
+    }
+
+    @Test
+    void when_trying_to_verify_not_existing_request_then_should_throw_not_found_exception() {
+        //given
+        Integer id = 127345;
+        when(mockedRequestRepository.findById(id)).thenReturn(Optional.empty());
+        //when //then
+        RequestNotFoundException exception = assertThrows(RequestNotFoundException.class,
+                () -> requestService.verifyRequest(id));
+        assertThat(exception.getMessage()).isEqualTo("Request with id " + id + " not found");
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            "PUBLISHED",
+            "DELETED",
+            "VERIFIED",
+            "REJECTED",
+            "ACCEPTED"
+    })
+    void when_trying_to_verify_request_in_state_different_than_created_then_should_throw_exception(RequestState state) {
+        //given
+        Integer id = 127345;
+        String reason = "request is no longer needed";
+        RequestEntity requestEntity = new RequestEntity("requestName", "requestBody", state);
+        requestEntity.setId(id);
+        when(mockedRequestRepository.findById(id)).thenReturn(Optional.of(requestEntity));
+        //when //then
+        RequestCannotBeProcessedException exception = assertThrows(RequestCannotBeProcessedException.class,
+                () -> requestService.verifyRequest(id));
+        assertThat(exception.getMessage()).isEqualTo("Request with id " + id +
+                " cannot be verified because it is in " + state.name() + " state" +
+                ", not in CREATED state");
     }
 }

@@ -1,6 +1,6 @@
 package michal.radecki.request_management;
 
-import michal.radecki.request_management.exception.RequestCannotBeDeletedException;
+import michal.radecki.request_management.exception.RequestCannotBeProcessedException;
 import michal.radecki.request_management.exception.RequestNotFoundException;
 import michal.radecki.request_management.response.CustomErrorResponse;
 import org.springframework.http.HttpStatus;
@@ -11,9 +11,9 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class MyExceptionHandler {
 
-    @ExceptionHandler(RequestCannotBeDeletedException.class)
-    public ResponseEntity<CustomErrorResponse> handleRequestCannotBeDeleted(
-            RequestCannotBeDeletedException exception) {
+    @ExceptionHandler(RequestCannotBeProcessedException.class)
+    public ResponseEntity<CustomErrorResponse> handleRequestCannotBeProcessed(
+            RequestCannotBeProcessedException exception) {
 
         CustomErrorResponse error = new CustomErrorResponse(exception.getMessage());
 

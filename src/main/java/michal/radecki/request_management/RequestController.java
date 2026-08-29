@@ -29,4 +29,10 @@ public class RequestController {
     public void deleteRequest(@PathVariable Integer id, @RequestBody @Valid DeleteRequest request) {
         requestService.deleteRequest(id, request.reason());
     }
+
+    @PostMapping("verify/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    public void verifyRequest(@PathVariable Integer id) {
+        requestService.verifyRequest(id);
+    }
 }

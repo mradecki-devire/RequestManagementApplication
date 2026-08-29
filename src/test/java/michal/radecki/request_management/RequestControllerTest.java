@@ -172,4 +172,62 @@ public class RequestControllerTest {
         assertThat(errorResponse.message()).isEqualTo("Request with id " + requestId +
                 " cannot be deleted because it is in DELETED state, not in CREATED state");
     }
+
+    @Test
+    void when_trying_to_verify_request_in_created_state_then_should_set_state_to_verified() throws Exception {
+        // given
+        CreateRequest createRequest = new CreateRequest("requestName", "requestBody");
+        MvcResult createResult = mockMvc.perform(post("/create")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(createRequest))
+        ).andReturn();
+        RequestCreatedResponse requestCreatedResponse = objectMapper.readValue(createResult.getResponse().getContentAsString(), RequestCreatedResponse.class);
+        Integer requestId = requestCreatedResponse.id();
+        // when
+        MvcResult deleteResult = mockMvc.perform(post("/verify/" + requestId)
+                .contentType(MediaType.APPLICATION_JSON)
+        ).andReturn();
+        // then
+        assertThat(deleteResult.getResponse().getStatus()).isEqualTo(200);
+        Optional<RequestEntity> requestEntityOpt = requestRepository.findById(requestId);
+        assertThat(requestEntityOpt).isPresent();
+        RequestEntity requestEntity = requestEntityOpt.get();
+        assertThat(requestEntity.getState()).isEqualTo(RequestState.VERIFIED);
+    }
+
+    @Test
+    void when_trying_to_verify_request_in_different_state_than_created_then_should_return_bad_request_response() throws Exception {
+        // given
+        CreateRequest createRequest = new CreateRequest("requestName", "requestBody");
+        MvcResult createResult = mockMvc.perform(post("/create")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(createRequest))
+        ).andReturn();
+        RequestCreatedResponse requestCreatedResponse = objectMapper.readValue(createResult.getResponse().getContentAsString(), RequestCreatedResponse.class);
+        Integer requestId = requestCreatedResponse.id();
+        String reason = "request is no longer needed";
+        DeleteRequest deleteRequest = new DeleteRequest(reason);
+        // when
+        MvcResult deleteResult = mockMvc.perform(delete("/" + requestId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(deleteRequest))
+        ).andReturn();
+        // then
+        assertThat(deleteResult.getResponse().getStatus()).isEqualTo(200);
+        Optional<RequestEntity> requestEntityOpt = requestRepository.findById(requestId);
+        assertThat(requestEntityOpt).isPresent();
+        RequestEntity requestEntity = requestEntityOpt.get();
+        assertThat(requestEntity.getState()).isEqualTo(RequestState.DELETED);
+        assertThat(requestEntity.getReason()).isEqualTo(reason);
+        // when
+        MvcResult verifyResult = mockMvc.perform(post("/verify/" + requestId)
+                .contentType(MediaType.APPLICATION_JSON)
+        ).andReturn();
+        // then
+        assertThat(verifyResult.getResponse().getStatus()).isEqualTo(400);
+        CustomErrorResponse errorResponse = objectMapper.readValue(verifyResult.getResponse().getContentAsString(), CustomErrorResponse.class);
+        assertThat(errorResponse.message()).isEqualTo("Request with id " + requestId +
+                " cannot be verified because it is in DELETED state" +
+                ", not in CREATED state");
+    }
 }
