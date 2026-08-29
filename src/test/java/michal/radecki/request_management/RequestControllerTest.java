@@ -46,7 +46,7 @@ public class RequestControllerTest {
         assertThat(requestEntity.getId()).isEqualTo(requestCreatedResponse.id());
         assertThat(requestEntity.getName()).isEqualTo("requestName");
         assertThat(requestEntity.getBody()).isEqualTo("requestBody");
-        assertThat(requestEntity.getState()).isNull();
+        assertThat(requestEntity.getState()).isEqualTo(RequestState.CREATED);
         assertThat(requestEntity.getReason()).isNull();
         assertThat(requestEntity.getPublicationIdentifier()).isNull();
     }

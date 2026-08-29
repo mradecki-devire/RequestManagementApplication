@@ -27,9 +27,9 @@ public class RequestEntity {
     private String reason;
     private String publicationIdentifier;
 
-    public RequestEntity(String name, String body) {
+    public RequestEntity(String name, String body, RequestState state) {
         this.name = name;
         this.body = body;
+        this.state = state;
     }
-
 }

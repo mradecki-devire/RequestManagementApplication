@@ -27,7 +27,7 @@ public class RequestServiceTest {
         //given
         Integer id = 127345;
         CreateRequest createRequest = new CreateRequest("requestName", "requestBody");
-        RequestEntity requestEntity = new RequestEntity(createRequest.name(), createRequest.body());
+        RequestEntity requestEntity = new RequestEntity(createRequest.name(), createRequest.body(), RequestState.CREATED);
         requestEntity.setId(id);
         when(mockedRequestRepository.save(any())).thenReturn(requestEntity);
         //when
