@@ -19,8 +19,6 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -38,7 +36,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-@MockitoSettings(strictness = Strictness.LENIENT)
 public class RequestServiceTest {
 
     private RequestService requestService;
@@ -54,7 +51,6 @@ public class RequestServiceTest {
     @BeforeEach
     void init() {
         this.requestService = new RequestService(mockedRequestRepository, mockedRequestStateHistoryRepository, publicationIdentifierGenerator);
-        when(mockedRequestStateHistoryRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
     }
 
     @Test
@@ -301,9 +297,9 @@ public class RequestServiceTest {
             "CREATED",
             "VERIFIED"
     })
-    void when_trying_to_update_body_in_request_with_created_or_verified_state_then_should_set_body() {
+    void when_trying_to_update_body_in_request_with_created_or_verified_state_then_should_set_body(RequestState state) {
         //given
-        RequestEntity requestEntity = new RequestEntity("requestName", "requestBody", RequestState.CREATED);
+        RequestEntity requestEntity = new RequestEntity("requestName", "requestBody", state);
         requestEntity.setRequestId(REQUEST_ID);
         when(mockedRequestRepository.findById(REQUEST_ID)).thenReturn(Optional.of(requestEntity));
         //when
