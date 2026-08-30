@@ -1,5 +1,6 @@
 package michal.radecki.request_management;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -25,6 +26,7 @@ public class RequestEntity {
     private String name;
     private String body;
     private String reason;
+    @Column(name = "publication_identifier", unique = true)
     private String publicationIdentifier;
 
     public RequestEntity(String name, String body, RequestState state) {

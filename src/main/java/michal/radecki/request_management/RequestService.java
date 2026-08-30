@@ -2,10 +2,10 @@ package michal.radecki.request_management;
 
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import michal.radecki.request_management.exception.RequestCannotBeProcessedException;
 import michal.radecki.request_management.exception.RequestNotFoundException;
 import michal.radecki.request_management.request.CreateRequest;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
@@ -14,10 +14,16 @@ import java.util.Set;
 
 @Service
 @Validated
-@RequiredArgsConstructor
 public class RequestService {
 
     private final RequestRepository requestRepository;
+    private final PublicationIdentifierGenerator publicationIdentifierGenerator;
+
+    public RequestService(RequestRepository requestRepository,
+                          @Qualifier("myPublicationIdentifierGenerator") PublicationIdentifierGenerator publicationIdentifierGenerator) {
+        this.requestRepository = requestRepository;
+        this.publicationIdentifierGenerator = publicationIdentifierGenerator;
+    }
 
     Integer createRequest(@Valid CreateRequest request) {
         RequestEntity entity = new RequestEntity(request.name(), request.body(), RequestState.CREATED);
@@ -104,6 +110,8 @@ public class RequestService {
                         ", not in ACCEPTED state");
             }
             requestEntity.setState(RequestState.PUBLISHED);
+            String publicationIdentifier = publicationIdentifierGenerator.generate();
+            requestEntity.setPublicationIdentifier(publicationIdentifier);
         }
     }
 }

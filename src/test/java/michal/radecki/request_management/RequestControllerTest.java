@@ -391,6 +391,9 @@ public class RequestControllerTest {
         assertThat(publishedRequestEntityOpt).isPresent();
         RequestEntity publishedRequestEntity = publishedRequestEntityOpt.get();
         assertThat(publishedRequestEntity.getState()).isEqualTo(RequestState.PUBLISHED);
+        assertThat(publishedRequestEntity.getPublicationIdentifier()).isNotNull();
+        assertThat(publishedRequestEntity.getPublicationIdentifier()).isNotBlank();
+        assertThat(publishedRequestEntity.getPublicationIdentifier().chars()).allMatch(Character::isDigit);
     }
 
     @Test

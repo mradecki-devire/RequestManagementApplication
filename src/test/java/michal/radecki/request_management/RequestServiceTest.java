@@ -25,10 +25,12 @@ public class RequestServiceTest {
     private RequestService requestService;
     @Mock
     private RequestRepository mockedRequestRepository;
+    @Mock
+    private PublicationIdentifierGenerator publicationIdentifierGenerator;
 
     @BeforeEach
     void init() {
-        this.requestService = new RequestService(mockedRequestRepository);
+        this.requestService = new RequestService(mockedRequestRepository, publicationIdentifierGenerator);
     }
 
     @Test
@@ -232,6 +234,7 @@ public class RequestServiceTest {
         RequestEntity requestEntity = new RequestEntity("requestName", "requestBody", RequestState.ACCEPTED);
         requestEntity.setId(id);
         when(mockedRequestRepository.findById(id)).thenReturn(Optional.of(requestEntity));
+        when(publicationIdentifierGenerator.generate()).thenReturn("123123");
         //when //then
         assertDoesNotThrow(() -> requestService.publishRequest(id));
     }
