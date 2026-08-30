@@ -79,36 +79,49 @@ However, body modifications are recorded in the audit history to preserve a comp
 - Spring MockMvc
 - springdoc-openapi / Swagger UI
 - Maven
+- GitHub Actions (CI)
 
 ## Architecture
 
-The application follows a layered structure with responsibilities separated between the REST API, business logic, persistence, and mapping layers.
+The application follows a layered architecture with responsibilities separated across REST API, business logic, persistence, mapping, and supporting components.
 
-```text
-Controller
-    │
-    ▼
-Service
-    │
-    ├── Repository
-    │
-    ├── PublicationIdentifierGenerator
-    │
-    └── Mapper
-            │
-            ▼
-           DTO
+```mermaid
+flowchart TD
+    Controller[RequestController]
+    Service[RequestService]
+    Repository[Repositories]
+    Generator[PublicationIdentifierGenerator]
+    Mapper[RequestMapper]
+    DTOs[DTOs / API Models]
+    Database[(H2 Database)]
+    Entities[JPA Entities]
+
+    Controller --> Service
+    Controller --> DTOs
+
+    Service --> Generator
+    Service --> Repository
+    Service --> Mapper
+
+    Repository --> Database
+    Repository --> Entities
+
+    Mapper --> Entities
+    Mapper --> DTOs
 ```
+
+Arrows represent the direction of dependencies between application components.
 
 The main responsibilities are:
 
-- **Controller** — exposes the REST API and handles HTTP input and output.
-- **Service** — contains request lifecycle rules and business logic.
-- **Repository** — provides persistence through Spring Data JPA.
-- **Entity** — represents persistent application data.
-- **DTO / Request / Response** — define API data structures without exposing persistence entities directly.
-- **Mapper** — converts between persistence entities and API DTOs.
-- **PublicationIdentifierGenerator** — abstracts publication identifier generation.
+- **RequestController** — exposes the REST API, handles HTTP requests and responses, and delegates business operations to the service layer.
+- **RequestService** — contains request lifecycle rules, coordinates business operations, and defines transaction boundaries.
+- **Repositories** — provide persistence operations through Spring Data JPA.
+- **JPA Entities** — represent the persistent state of requests and their audit history.
+- **DTOs / API Models** — define the external API contract without exposing persistence entities directly.
+- **RequestMapper** — converts between persistence entities and API models.
+- **PublicationIdentifierGenerator** — abstracts the publication identifier generation strategy.
+- **H2 Database** — provides the application's in-memory data storage.
 
 ## Running the Application
 
@@ -127,7 +140,7 @@ cd RequestManagementApplication
 Run the application using Maven:
 
 ```bash
-mvn spring-boot:run
+./mvnw spring-boot:run
 ```
 
 Alternatively, the application can be started directly from an IDE such as IntelliJ IDEA.
@@ -468,9 +481,9 @@ Invalid operations result in business exceptions.
 
 ### Transaction Boundaries
 
-Operations modifying an existing request are transactional.
+Operations that persist or modify requests together with their corresponding audit entries are transactional.
 
-A request modification and its corresponding audit entry therefore form a single logical operation.
+A request change and its corresponding audit entry therefore form a single logical operation.
 
 For example:
 
@@ -486,6 +499,23 @@ audit entry
 
 should either be persisted together or rolled back together if the operation fails.
 
+## Continuous Integration
+
+The project uses GitHub Actions for continuous integration.
+
+On every push or pull request to the `main` branch, the CI pipeline:
+
+1. Checks out the repository.
+2. Sets up JDK 25.
+3. Builds the application.
+4. Runs the automated test suite.
+
+The build is executed using:
+
+```bash
+./mvnw clean verify
+```
+
 ## Testing
 
 The project contains automated tests using:
@@ -500,7 +530,7 @@ Tests cover service-level business behavior as well as REST API behavior.
 Run all tests with:
 
 ```bash
-mvn test
+./mvnw test
 ```
 
 ## Possible Improvements
