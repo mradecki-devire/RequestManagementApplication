@@ -90,4 +90,20 @@ public class RequestService {
             requestEntity.setReason(reason);
         }
     }
+
+    @Transactional
+    void publishRequest(Integer requestId) {
+        Optional<RequestEntity> requestEntityOpt = requestRepository.findById(requestId);
+        if (requestEntityOpt.isEmpty()) {
+            throw new RequestNotFoundException(requestId);
+        } else {
+            RequestEntity requestEntity = requestEntityOpt.get();
+            if (requestEntity.getState() != RequestState.ACCEPTED) {
+                throw new RequestCannotBeProcessedException("Request with id " + requestId +
+                        " cannot be published because it is in " + requestEntity.getState() + " state" +
+                        ", not in ACCEPTED state");
+            }
+            requestEntity.setState(RequestState.PUBLISHED);
+        }
+    }
 }

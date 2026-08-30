@@ -185,11 +185,11 @@ public class RequestControllerTest {
         RequestCreatedResponse requestCreatedResponse = objectMapper.readValue(createResult.getResponse().getContentAsString(), RequestCreatedResponse.class);
         Integer requestId = requestCreatedResponse.id();
         // when
-        MvcResult deleteResult = mockMvc.perform(post("/verify/" + requestId)
+        MvcResult verifyResult = mockMvc.perform(post("/verify/" + requestId)
                 .contentType(MediaType.APPLICATION_JSON)
         ).andReturn();
         // then
-        assertThat(deleteResult.getResponse().getStatus()).isEqualTo(200);
+        assertThat(verifyResult.getResponse().getStatus()).isEqualTo(200);
         Optional<RequestEntity> requestEntityOpt = requestRepository.findById(requestId);
         assertThat(requestEntityOpt).isPresent();
         RequestEntity requestEntity = requestEntityOpt.get();
@@ -243,11 +243,11 @@ public class RequestControllerTest {
         RequestCreatedResponse requestCreatedResponse = objectMapper.readValue(createResult.getResponse().getContentAsString(), RequestCreatedResponse.class);
         Integer requestId = requestCreatedResponse.id();
         // when
-        MvcResult deleteResult = mockMvc.perform(post("/verify/" + requestId)
+        MvcResult verifyResult = mockMvc.perform(post("/verify/" + requestId)
                 .contentType(MediaType.APPLICATION_JSON)
         ).andReturn();
         // then
-        assertThat(deleteResult.getResponse().getStatus()).isEqualTo(200);
+        assertThat(verifyResult.getResponse().getStatus()).isEqualTo(200);
         Optional<RequestEntity> requestEntityOpt = requestRepository.findById(requestId);
         assertThat(requestEntityOpt).isPresent();
         RequestEntity requestEntity = requestEntityOpt.get();
@@ -258,10 +258,10 @@ public class RequestControllerTest {
         ).andReturn();
         // then
         assertThat(acceptedResult.getResponse().getStatus()).isEqualTo(200);
-        Optional<RequestEntity> requestEntity2Opt = requestRepository.findById(requestId);
-        assertThat(requestEntity2Opt).isPresent();
-        RequestEntity requestEntity2 = requestEntity2Opt.get();
-        assertThat(requestEntity2.getState()).isEqualTo(RequestState.ACCEPTED);
+        Optional<RequestEntity> acceptedRequestEntityOpt = requestRepository.findById(requestId);
+        assertThat(acceptedRequestEntityOpt).isPresent();
+        RequestEntity acceptedRequestEntity = acceptedRequestEntityOpt.get();
+        assertThat(acceptedRequestEntity.getState()).isEqualTo(RequestState.ACCEPTED);
     }
 
     @Test
@@ -280,10 +280,10 @@ public class RequestControllerTest {
         ).andReturn();
         // then
         assertThat(acceptedResult.getResponse().getStatus()).isEqualTo(400);
-        Optional<RequestEntity> requestEntity2Opt = requestRepository.findById(requestId);
-        assertThat(requestEntity2Opt).isPresent();
-        RequestEntity requestEntity2 = requestEntity2Opt.get();
-        assertThat(requestEntity2.getState()).isEqualTo(RequestState.CREATED);
+        Optional<RequestEntity> createdRequestEntityOpt = requestRepository.findById(requestId);
+        assertThat(createdRequestEntityOpt).isPresent();
+        RequestEntity createdRequestEntity = createdRequestEntityOpt.get();
+        assertThat(createdRequestEntity.getState()).isEqualTo(RequestState.CREATED);
         CustomErrorResponse errorResponse = objectMapper.readValue(acceptedResult.getResponse().getContentAsString(), CustomErrorResponse.class);
         assertThat(errorResponse.message()).isEqualTo("Request with id " + requestId +
                 " cannot be accepted because it is in CREATED state" +
@@ -306,22 +306,22 @@ public class RequestControllerTest {
         ).andReturn();
         // then
         assertThat(deleteResult.getResponse().getStatus()).isEqualTo(200);
-        Optional<RequestEntity> requestEntityOpt = requestRepository.findById(requestId);
-        assertThat(requestEntityOpt).isPresent();
-        RequestEntity requestEntity = requestEntityOpt.get();
-        assertThat(requestEntity.getState()).isEqualTo(RequestState.VERIFIED);
+        Optional<RequestEntity> verifiedRequestEntityOpt = requestRepository.findById(requestId);
+        assertThat(verifiedRequestEntityOpt).isPresent();
+        RequestEntity verifiedRequestEntity = verifiedRequestEntityOpt.get();
+        assertThat(verifiedRequestEntity.getState()).isEqualTo(RequestState.VERIFIED);
         // when
-        MvcResult acceptedResult = mockMvc.perform(post("/reject/" + requestId)
+        MvcResult rejectedResult = mockMvc.perform(post("/reject/" + requestId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(new RequestWithReason("request is no longer needed")))
         ).andReturn();
         // then
-        assertThat(acceptedResult.getResponse().getStatus()).isEqualTo(200);
-        Optional<RequestEntity> requestEntity2Opt = requestRepository.findById(requestId);
-        assertThat(requestEntity2Opt).isPresent();
-        RequestEntity requestEntity2 = requestEntity2Opt.get();
-        assertThat(requestEntity2.getState()).isEqualTo(RequestState.REJECTED);
-        assertThat(requestEntity2.getReason()).isEqualTo("request is no longer needed");
+        assertThat(rejectedResult.getResponse().getStatus()).isEqualTo(200);
+        Optional<RequestEntity> rejectedRequestEntityOpt = requestRepository.findById(requestId);
+        assertThat(rejectedRequestEntityOpt).isPresent();
+        RequestEntity rejectedRequestEntity = rejectedRequestEntityOpt.get();
+        assertThat(rejectedRequestEntity.getState()).isEqualTo(RequestState.REJECTED);
+        assertThat(rejectedRequestEntity.getReason()).isEqualTo("request is no longer needed");
     }
 
     @Test
@@ -335,19 +335,87 @@ public class RequestControllerTest {
         RequestCreatedResponse requestCreatedResponse = objectMapper.readValue(createResult.getResponse().getContentAsString(), RequestCreatedResponse.class);
         Integer requestId = requestCreatedResponse.id();
         // when
-        MvcResult acceptedResult = mockMvc.perform(post("/reject/" + requestId)
+        MvcResult rejectedResult = mockMvc.perform(post("/reject/" + requestId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(new RequestWithReason("request is no longer needed")))
         ).andReturn();
         // then
-        assertThat(acceptedResult.getResponse().getStatus()).isEqualTo(400);
-        Optional<RequestEntity> requestEntity2Opt = requestRepository.findById(requestId);
-        assertThat(requestEntity2Opt).isPresent();
-        RequestEntity requestEntity2 = requestEntity2Opt.get();
-        assertThat(requestEntity2.getState()).isEqualTo(RequestState.CREATED);
-        CustomErrorResponse errorResponse = objectMapper.readValue(acceptedResult.getResponse().getContentAsString(), CustomErrorResponse.class);
+        assertThat(rejectedResult.getResponse().getStatus()).isEqualTo(400);
+        Optional<RequestEntity> createdRequestEntityOpt = requestRepository.findById(requestId);
+        assertThat(createdRequestEntityOpt).isPresent();
+        RequestEntity createdRequestEntity = createdRequestEntityOpt.get();
+        assertThat(createdRequestEntity.getState()).isEqualTo(RequestState.CREATED);
+        CustomErrorResponse errorResponse = objectMapper.readValue(rejectedResult.getResponse().getContentAsString(), CustomErrorResponse.class);
         assertThat(errorResponse.message()).isEqualTo("Request with id " + requestId +
                 " cannot be rejected because it is in CREATED state" +
                 ", not in VERIFIED or ACCEPTED state");
+    }
+
+    @Test
+    void when_trying_to_publish_request_in_accepted_state_then_should_set_state_to_published() throws Exception {
+        // given
+        CreateRequest createRequest = new CreateRequest("requestName", "requestBody");
+        MvcResult createResult = mockMvc.perform(post("/create")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(createRequest))
+        ).andReturn();
+        RequestCreatedResponse requestCreatedResponse = objectMapper.readValue(createResult.getResponse().getContentAsString(), RequestCreatedResponse.class);
+        Integer requestId = requestCreatedResponse.id();
+        // when
+        MvcResult verifyResult = mockMvc.perform(post("/verify/" + requestId)
+                .contentType(MediaType.APPLICATION_JSON)
+        ).andReturn();
+        // then
+        assertThat(verifyResult.getResponse().getStatus()).isEqualTo(200);
+        Optional<RequestEntity> requestEntityOpt = requestRepository.findById(requestId);
+        assertThat(requestEntityOpt).isPresent();
+        RequestEntity requestEntity = requestEntityOpt.get();
+        assertThat(requestEntity.getState()).isEqualTo(RequestState.VERIFIED);
+        // when
+        MvcResult acceptedResult = mockMvc.perform(post("/accept/" + requestId)
+                .contentType(MediaType.APPLICATION_JSON)
+        ).andReturn();
+        // then
+        assertThat(acceptedResult.getResponse().getStatus()).isEqualTo(200);
+        Optional<RequestEntity> acceptedRequestEntityOpt = requestRepository.findById(requestId);
+        assertThat(acceptedRequestEntityOpt).isPresent();
+        RequestEntity acceptedRequestEntity = acceptedRequestEntityOpt.get();
+        assertThat(acceptedRequestEntity.getState()).isEqualTo(RequestState.ACCEPTED);
+        // when
+        MvcResult publishedResult = mockMvc.perform(post("/publish/" + requestId)
+                .contentType(MediaType.APPLICATION_JSON)
+        ).andReturn();
+        // then
+        assertThat(publishedResult.getResponse().getStatus()).isEqualTo(200);
+        Optional<RequestEntity> publishedRequestEntityOpt = requestRepository.findById(requestId);
+        assertThat(publishedRequestEntityOpt).isPresent();
+        RequestEntity publishedRequestEntity = publishedRequestEntityOpt.get();
+        assertThat(publishedRequestEntity.getState()).isEqualTo(RequestState.PUBLISHED);
+    }
+
+    @Test
+    void when_trying_to_publish_request_in_different_state_than_accepted_then_should_not_change_state_and_throw_exception() throws Exception {
+        // given
+        CreateRequest createRequest = new CreateRequest("requestName", "requestBody");
+        MvcResult createResult = mockMvc.perform(post("/create")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(createRequest))
+        ).andReturn();
+        RequestCreatedResponse requestCreatedResponse = objectMapper.readValue(createResult.getResponse().getContentAsString(), RequestCreatedResponse.class);
+        Integer requestId = requestCreatedResponse.id();
+        // when
+        MvcResult publishedResult = mockMvc.perform(post("/publish/" + requestId)
+                .contentType(MediaType.APPLICATION_JSON)
+        ).andReturn();
+        // then
+        assertThat(publishedResult.getResponse().getStatus()).isEqualTo(400);
+        Optional<RequestEntity> createdRequestEntityOpt = requestRepository.findById(requestId);
+        assertThat(createdRequestEntityOpt).isPresent();
+        RequestEntity createdRequestEntity = createdRequestEntityOpt.get();
+        assertThat(createdRequestEntity.getState()).isEqualTo(RequestState.CREATED);
+        CustomErrorResponse errorResponse = objectMapper.readValue(publishedResult.getResponse().getContentAsString(), CustomErrorResponse.class);
+        assertThat(errorResponse.message()).isEqualTo("Request with id " + requestId +
+                " cannot be published because it is in CREATED state" +
+                ", not in ACCEPTED state");
     }
 }

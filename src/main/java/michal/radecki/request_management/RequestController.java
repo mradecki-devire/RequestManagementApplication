@@ -48,4 +48,10 @@ public class RequestController {
     public void rejectRequest(@PathVariable Integer id, @RequestBody @Valid RequestWithReason request) {
         requestService.rejectRequest(id, request.reason());
     }
+
+    @PostMapping("publish/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    public void publishRequest(@PathVariable Integer id) {
+        requestService.publishRequest(id);
+    }
 }
