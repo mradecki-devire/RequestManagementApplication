@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import michal.radecki.request_management.dto.RequestDto;
 import michal.radecki.request_management.dto.RequestStateHistoryDto;
@@ -14,6 +15,7 @@ import michal.radecki.request_management.response.RequestCreatedResponse;
 import michal.radecki.request_management.response.RequestPublishResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -28,6 +30,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
+@Validated
 public class RequestController {
 
     private final RequestService requestService;
@@ -115,17 +118,26 @@ public class RequestController {
     @ResponseStatus(HttpStatus.OK)
     public Page<RequestDto> browseRequests(
             @Parameter(schema = @Schema(defaultValue = "0"))
-            @RequestParam(required = false, defaultValue = "0") Integer page,
+            @Min(0)
+            @RequestParam(required = false, defaultValue = "0")
+            Integer page,
+
             @Parameter(schema = @Schema(defaultValue = "10"))
-            @RequestParam(required = false, defaultValue = "10") Integer size,
-            @RequestParam(required = false) String name,
-            @RequestParam(required = false) RequestState state) {
+            @Min(1)
+            @RequestParam(required = false, defaultValue = "10")
+            Integer size,
+
+            @RequestParam(required = false)
+            String name,
+
+            @RequestParam(required = false)
+            RequestState state) {
         return requestService.getRequestsPage(page, size, name, state);
     }
 
     @Operation(
             summary = "Get request audit log",
-            description = "Returns the complete history of state changes for the request with the given request id"
+            description = "Returns the complete audit history of relevant request changes for the given request id"
     )
     @GetMapping("auditlog/{requestId}")
     @ResponseStatus(HttpStatus.OK)
