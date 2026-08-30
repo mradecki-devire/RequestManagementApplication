@@ -452,11 +452,54 @@ Pagination without explicit ordering does not guarantee deterministic record ord
 
 Sorting by request identifier ensures that repeated requests for consecutive pages operate on a well-defined ordering.
 
-### In-Memory Database
+### Database Choice
 
 H2 was selected to make the application easy to run and evaluate without requiring external database infrastructure.
 
-The persistence layer uses JPA, limiting coupling between business logic and the selected database.
+The persistence layer is based on JPA and Spring Data JPA, which limits coupling between the business logic and the selected database.
+
+For a production environment, H2 could be replaced with a relational database such as PostgreSQL with minimal changes to the application code. The main changes would involve the database driver, datasource configuration, and database schema management.
+
+In a production setup, a database migration tool such as Flyway or Liquibase could also be introduced to manage schema changes explicitly.
+
+For PostgreSQL, add the PostgreSQL JDBC driver:
+
+```xml
+<dependency>
+    <groupId>org.postgresql</groupId>
+    <artifactId>postgresql</artifactId>
+    <scope>runtime</scope>
+</dependency>
+```
+
+H2 can then be kept only for tests by changing its scope to `test`:
+
+```xml
+<dependency>
+    <groupId>com.h2database</groupId>
+    <artifactId>h2</artifactId>
+    <scope>test</scope>
+</dependency>
+```
+
+In production setup the datasource configuration in `application.properties` should also be changed to point to for example the PostgreSQL database. Example properties setup:
+
+```properties
+spring.datasource.url=jdbc:postgresql://localhost:5432/request_management
+spring.datasource.username=request_user
+spring.datasource.password=request_password
+spring.datasource.driver-class-name=org.postgresql.Driver
+```
+
+For a production setup, database credentials should be provided through environment variables or a secrets management solution rather than stored directly in `application.properties`.
+
+It is also recommended to manage the database schema explicitly using a migration tool such as Flyway or Liquibase and configure Hibernate to validate the schema:
+
+```properties
+spring.jpa.hibernate.ddl-auto=validate
+```
+
+The application and service layers would not require changes, as the persistence layer uses JPA and Spring Data JPA without relying on H2-specific APIs.
 
 ### State Transition Validation
 
