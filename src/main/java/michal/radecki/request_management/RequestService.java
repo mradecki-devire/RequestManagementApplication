@@ -56,4 +56,20 @@ public class RequestService {
             requestEntity.setState(RequestState.VERIFIED);
         }
     }
+
+    @Transactional
+    void acceptRequest(Integer requestId) {
+        Optional<RequestEntity> requestEntityOpt = requestRepository.findById(requestId);
+        if (requestEntityOpt.isEmpty()) {
+            throw new RequestNotFoundException(requestId);
+        } else {
+            RequestEntity requestEntity = requestEntityOpt.get();
+            if (requestEntity.getState() != RequestState.VERIFIED) {
+                throw new RequestCannotBeProcessedException("Request with id " + requestId +
+                        " cannot be accepted because it is in " + requestEntity.getState() + " state" +
+                        ", not in VERIFIED state");
+            }
+            requestEntity.setState(RequestState.ACCEPTED);
+        }
+    }
 }

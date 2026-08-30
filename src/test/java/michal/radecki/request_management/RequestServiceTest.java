@@ -137,4 +137,48 @@ public class RequestServiceTest {
                 " cannot be verified because it is in " + state.name() + " state" +
                 ", not in CREATED state");
     }
+
+    @Test
+    void when_trying_to_accept_request_in_verified_state_then_should_set_state_to_accepted() {
+        //given
+        Integer id = 127345;
+        RequestEntity requestEntity = new RequestEntity("requestName", "requestBody", RequestState.VERIFIED);
+        requestEntity.setId(id);
+        when(mockedRequestRepository.findById(id)).thenReturn(Optional.of(requestEntity));
+        //when //then
+        assertDoesNotThrow(() -> requestService.acceptRequest(id));
+    }
+
+    @Test
+    void when_trying_to_accept_not_existing_request_then_should_throw_not_found_exception() {
+        //given
+        Integer id = 127345;
+        when(mockedRequestRepository.findById(id)).thenReturn(Optional.empty());
+        //when //then
+        RequestNotFoundException exception = assertThrows(RequestNotFoundException.class,
+                () -> requestService.acceptRequest(id));
+        assertThat(exception.getMessage()).isEqualTo("Request with id " + id + " not found");
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            "CREATED",
+            "PUBLISHED",
+            "DELETED",
+            "REJECTED",
+            "ACCEPTED"
+    })
+    void when_trying_to_accept_request_in_state_different_than_verified_then_should_throw_exception(RequestState state) {
+        //given
+        Integer id = 127345;
+        RequestEntity requestEntity = new RequestEntity("requestName", "requestBody", state);
+        requestEntity.setId(id);
+        when(mockedRequestRepository.findById(id)).thenReturn(Optional.of(requestEntity));
+        //when //then
+        RequestCannotBeProcessedException exception = assertThrows(RequestCannotBeProcessedException.class,
+                () -> requestService.acceptRequest(id));
+        assertThat(exception.getMessage()).isEqualTo("Request with id " + id +
+                " cannot be accepted because it is in " + state.name() + " state" +
+                ", not in VERIFIED state");
+    }
 }

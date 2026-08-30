@@ -35,4 +35,10 @@ public class RequestController {
     public void verifyRequest(@PathVariable Integer id) {
         requestService.verifyRequest(id);
     }
+
+    @PostMapping("accept/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    public void acceptRequest(@PathVariable Integer id) {
+        requestService.acceptRequest(id);
+    }
 }
