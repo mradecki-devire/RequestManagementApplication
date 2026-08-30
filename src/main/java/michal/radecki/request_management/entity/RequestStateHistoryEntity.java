@@ -35,7 +35,7 @@ public class RequestStateHistoryEntity {
 
     public RequestStateHistoryEntity(RequestEntity requestEntity) {
         this.requestId = requestEntity.getRequestId();
-        this.name = requestEntity.getName();;
+        this.name = requestEntity.getName();
         this.body = requestEntity.getBody();
         this.reason = requestEntity.getReason();
         this.publicationIdentifier = requestEntity.getPublicationIdentifier();
