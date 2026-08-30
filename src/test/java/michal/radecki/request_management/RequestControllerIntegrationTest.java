@@ -12,6 +12,7 @@ import michal.radecki.request_management.request.UpdateBodyRequest;
 import michal.radecki.request_management.response.CustomErrorResponse;
 import michal.radecki.request_management.response.PageResponse;
 import michal.radecki.request_management.response.RequestCreatedResponse;
+import michal.radecki.request_management.response.RequestPublishResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -484,6 +485,12 @@ public class RequestControllerIntegrationTest {
         ).andReturn();
         // then
         assertThat(publishedResult.getResponse().getStatus()).isEqualTo(200);
+        RequestPublishResponse response = objectMapper.readValue(publishedResult.getResponse().getContentAsString(), RequestPublishResponse.class);
+        assertThat(response).isNotNull();
+        assertThat(response.requestId()).isEqualTo(requestId);
+        assertThat(response.publicationIdentifier()).isNotNull();
+        assertThat(response.publicationIdentifier()).isNotBlank();
+
         Optional<RequestEntity> publishedRequestEntityOpt = requestRepository.findById(requestId);
         assertThat(publishedRequestEntityOpt).isPresent();
         RequestEntity publishedRequestEntity = publishedRequestEntityOpt.get();

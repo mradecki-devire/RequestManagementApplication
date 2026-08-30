@@ -10,6 +10,7 @@ import michal.radecki.request_management.repository.RequestRepository;
 import michal.radecki.request_management.repository.RequestStateHistoryRepository;
 import michal.radecki.request_management.request.CreateRequest;
 import michal.radecki.request_management.request.UpdateBodyRequest;
+import michal.radecki.request_management.response.RequestPublishResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -256,7 +257,10 @@ public class RequestServiceTest {
         when(mockedRequestRepository.findById(id)).thenReturn(Optional.of(requestEntity));
         when(publicationIdentifierGenerator.generate()).thenReturn("123123");
         //when //then
-        assertDoesNotThrow(() -> requestService.publishRequest(id));
+        RequestPublishResponse publishResponse = assertDoesNotThrow(() -> requestService.publishRequest(id));
+        assertThat(publishResponse).isNotNull();
+        assertThat(publishResponse.requestId()).isEqualTo(id);
+        assertThat(publishResponse.publicationIdentifier()).isNotNull();
     }
 
     @Test

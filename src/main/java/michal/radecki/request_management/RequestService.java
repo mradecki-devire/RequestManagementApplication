@@ -14,6 +14,7 @@ import michal.radecki.request_management.repository.RequestRepository;
 import michal.radecki.request_management.repository.RequestStateHistoryRepository;
 import michal.radecki.request_management.request.CreateRequest;
 import michal.radecki.request_management.request.UpdateBodyRequest;
+import michal.radecki.request_management.response.RequestPublishResponse;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -123,7 +124,7 @@ public class RequestService {
     }
 
     @Transactional
-    void publishRequest(Integer requestId) {
+    RequestPublishResponse publishRequest(Integer requestId) {
         Optional<RequestEntity> requestEntityOpt = requestRepository.findById(requestId);
         if (requestEntityOpt.isEmpty()) {
             throw new RequestNotFoundException(requestId);
@@ -138,6 +139,7 @@ public class RequestService {
             requestEntity.setPublicationIdentifier(publicationIdentifier);
             requestEntity.setState(RequestState.PUBLISHED);
             requestStateHistoryRepository.save(new RequestStateHistoryEntity(requestEntity));
+            return new RequestPublishResponse(requestId, publicationIdentifier);
         }
     }
 

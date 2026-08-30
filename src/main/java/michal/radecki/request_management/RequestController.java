@@ -8,6 +8,7 @@ import michal.radecki.request_management.request.CreateRequest;
 import michal.radecki.request_management.request.RequestWithReason;
 import michal.radecki.request_management.request.UpdateBodyRequest;
 import michal.radecki.request_management.response.RequestCreatedResponse;
+import michal.radecki.request_management.response.RequestPublishResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -60,8 +61,8 @@ public class RequestController {
 
     @PostMapping("publish/{requestId}")
     @ResponseStatus(HttpStatus.OK)
-    public void publishRequest(@PathVariable Integer requestId) {
-        requestService.publishRequest(requestId);
+    public RequestPublishResponse publishRequest(@PathVariable Integer requestId) {
+        return requestService.publishRequest(requestId);
     }
 
     @PutMapping("update/{requestId}")
