@@ -1,5 +1,9 @@
 package michal.radecki.request_management;
 
+import michal.radecki.request_management.entity.RequestEntity;
+import michal.radecki.request_management.entity.RequestStateHistoryEntity;
+import michal.radecki.request_management.repository.RequestRepository;
+import michal.radecki.request_management.repository.RequestStateHistoryRepository;
 import michal.radecki.request_management.request.CreateRequest;
 import michal.radecki.request_management.request.RequestWithReason;
 import michal.radecki.request_management.request.UpdateBodyRequest;
@@ -14,7 +18,10 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import tools.jackson.databind.ObjectMapper;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.function.BiPredicate;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -27,6 +34,9 @@ public class RequestControllerTest {
 
     @Autowired
     private RequestRepository requestRepository;
+
+    @Autowired
+    private RequestStateHistoryRepository requestStateHistoryRepository;
 
     @Autowired
     private MockMvc mockMvc;
@@ -56,6 +66,12 @@ public class RequestControllerTest {
         assertThat(requestEntity.getState()).isEqualTo(RequestState.CREATED);
         assertThat(requestEntity.getReason()).isNull();
         assertThat(requestEntity.getPublicationIdentifier()).isNull();
+
+        List<RequestStateHistoryEntity> requestStateHistoryEntityList = requestStateHistoryRepository.findAllByRequestId(
+                requestCreatedResponse.id());
+        assertThat(requestStateHistoryEntityList).isNotNull();
+        assertThat(requestStateHistoryEntityList).hasSize(1);
+        assert(match.test(requestEntity, requestStateHistoryEntityList.get(0)));
     }
 
     @Test
@@ -138,6 +154,20 @@ public class RequestControllerTest {
         RequestEntity requestEntity = requestEntityOpt.get();
         assertThat(requestEntity.getState()).isEqualTo(RequestState.DELETED);
         assertThat(requestEntity.getReason()).isEqualTo(reason);
+
+        List<RequestStateHistoryEntity> requestStateHistoryEntityList = requestStateHistoryRepository.findAllByRequestId(
+                requestCreatedResponse.id());
+        assertThat(requestStateHistoryEntityList).isNotNull();
+        assertThat(requestStateHistoryEntityList).hasSize(2);
+        Optional<RequestStateHistoryEntity> requestStateHistoryEntityCreatedOpt = requestStateHistoryEntityList.stream()
+                .filter(r -> r.getState() == RequestState.CREATED)
+                .findFirst();
+        assertThat(requestStateHistoryEntityCreatedOpt).isPresent();
+        Optional<RequestStateHistoryEntity> requestStateHistoryEntityDeletedOpt = requestStateHistoryEntityList.stream()
+                .filter(r -> r.getState() == RequestState.DELETED)
+                .findFirst();
+        assertThat(requestStateHistoryEntityDeletedOpt).isPresent();
+        assert(match.test(requestEntity, requestStateHistoryEntityDeletedOpt.get()));
     }
 
     @Test
@@ -196,6 +226,20 @@ public class RequestControllerTest {
         assertThat(requestEntityOpt).isPresent();
         RequestEntity requestEntity = requestEntityOpt.get();
         assertThat(requestEntity.getState()).isEqualTo(RequestState.VERIFIED);
+
+        List<RequestStateHistoryEntity> requestStateHistoryEntityList = requestStateHistoryRepository.findAllByRequestId(
+                requestCreatedResponse.id());
+        assertThat(requestStateHistoryEntityList).isNotNull();
+        assertThat(requestStateHistoryEntityList).hasSize(2);
+        Optional<RequestStateHistoryEntity> requestStateHistoryEntityCreatedOpt = requestStateHistoryEntityList.stream()
+                .filter(r -> r.getState() == RequestState.CREATED)
+                .findFirst();
+        assertThat(requestStateHistoryEntityCreatedOpt).isPresent();
+        Optional<RequestStateHistoryEntity> requestStateHistoryEntityVerifiedOpt = requestStateHistoryEntityList.stream()
+                .filter(r -> r.getState() == RequestState.VERIFIED)
+                .findFirst();
+        assertThat(requestStateHistoryEntityVerifiedOpt).isPresent();
+        assert(match.test(requestEntity, requestStateHistoryEntityVerifiedOpt.get()));
     }
 
     @Test
@@ -264,6 +308,24 @@ public class RequestControllerTest {
         assertThat(acceptedRequestEntityOpt).isPresent();
         RequestEntity acceptedRequestEntity = acceptedRequestEntityOpt.get();
         assertThat(acceptedRequestEntity.getState()).isEqualTo(RequestState.ACCEPTED);
+
+        List<RequestStateHistoryEntity> requestStateHistoryEntityList = requestStateHistoryRepository.findAllByRequestId(
+                requestCreatedResponse.id());
+        assertThat(requestStateHistoryEntityList).isNotNull();
+        assertThat(requestStateHistoryEntityList).hasSize(3);
+        Optional<RequestStateHistoryEntity> requestStateHistoryEntityCreatedOpt = requestStateHistoryEntityList.stream()
+                .filter(r -> r.getState() == RequestState.CREATED)
+                .findFirst();
+        assertThat(requestStateHistoryEntityCreatedOpt).isPresent();
+        Optional<RequestStateHistoryEntity> requestStateHistoryEntityVerifiedOpt = requestStateHistoryEntityList.stream()
+                .filter(r -> r.getState() == RequestState.VERIFIED)
+                .findFirst();
+        assertThat(requestStateHistoryEntityVerifiedOpt).isPresent();
+        Optional<RequestStateHistoryEntity> requestStateHistoryEntityAcceptedOpt = requestStateHistoryEntityList.stream()
+                .filter(r -> r.getState() == RequestState.ACCEPTED)
+                .findFirst();
+        assertThat(requestStateHistoryEntityAcceptedOpt).isPresent();
+        assert(match.test(acceptedRequestEntity, requestStateHistoryEntityAcceptedOpt.get()));
     }
 
     @Test
@@ -324,6 +386,24 @@ public class RequestControllerTest {
         RequestEntity rejectedRequestEntity = rejectedRequestEntityOpt.get();
         assertThat(rejectedRequestEntity.getState()).isEqualTo(RequestState.REJECTED);
         assertThat(rejectedRequestEntity.getReason()).isEqualTo("request is no longer needed");
+
+        List<RequestStateHistoryEntity> requestStateHistoryEntityList = requestStateHistoryRepository.findAllByRequestId(
+                requestCreatedResponse.id());
+        assertThat(requestStateHistoryEntityList).isNotNull();
+        assertThat(requestStateHistoryEntityList).hasSize(3);
+        Optional<RequestStateHistoryEntity> requestStateHistoryEntityCreatedOpt = requestStateHistoryEntityList.stream()
+                .filter(r -> r.getState() == RequestState.CREATED)
+                .findFirst();
+        assertThat(requestStateHistoryEntityCreatedOpt).isPresent();
+        Optional<RequestStateHistoryEntity> requestStateHistoryEntityVerifiedOpt = requestStateHistoryEntityList.stream()
+                .filter(r -> r.getState() == RequestState.VERIFIED)
+                .findFirst();
+        assertThat(requestStateHistoryEntityVerifiedOpt).isPresent();
+        Optional<RequestStateHistoryEntity> requestStateHistoryEntityRejectedOpt = requestStateHistoryEntityList.stream()
+                .filter(r -> r.getState() == RequestState.REJECTED)
+                .findFirst();
+        assertThat(requestStateHistoryEntityRejectedOpt).isPresent();
+        assert(match.test(rejectedRequestEntity, requestStateHistoryEntityRejectedOpt.get()));
     }
 
     @Test
@@ -396,6 +476,28 @@ public class RequestControllerTest {
         assertThat(publishedRequestEntity.getPublicationIdentifier()).isNotNull();
         assertThat(publishedRequestEntity.getPublicationIdentifier()).isNotBlank();
         assertThat(publishedRequestEntity.getPublicationIdentifier().chars()).allMatch(Character::isDigit);
+
+        List<RequestStateHistoryEntity> requestStateHistoryEntityList = requestStateHistoryRepository.findAllByRequestId(
+                requestCreatedResponse.id());
+        assertThat(requestStateHistoryEntityList).isNotNull();
+        assertThat(requestStateHistoryEntityList).hasSize(4);
+        Optional<RequestStateHistoryEntity> requestStateHistoryEntityCreatedOpt = requestStateHistoryEntityList.stream()
+                .filter(r -> r.getState() == RequestState.CREATED)
+                .findFirst();
+        assertThat(requestStateHistoryEntityCreatedOpt).isPresent();
+        Optional<RequestStateHistoryEntity> requestStateHistoryEntityVerifiedOpt = requestStateHistoryEntityList.stream()
+                .filter(r -> r.getState() == RequestState.VERIFIED)
+                .findFirst();
+        assertThat(requestStateHistoryEntityVerifiedOpt).isPresent();
+        Optional<RequestStateHistoryEntity> requestStateHistoryEntityAcceptedOpt = requestStateHistoryEntityList.stream()
+                .filter(r -> r.getState() == RequestState.ACCEPTED)
+                .findFirst();
+        assertThat(requestStateHistoryEntityAcceptedOpt).isPresent();
+        Optional<RequestStateHistoryEntity> requestStateHistoryEntityPublishedOpt = requestStateHistoryEntityList.stream()
+                .filter(r -> r.getState() == RequestState.PUBLISHED)
+                .findFirst();
+        assertThat(requestStateHistoryEntityPublishedOpt).isPresent();
+        assert(match.test(publishedRequestEntity, requestStateHistoryEntityPublishedOpt.get()));
     }
 
     @Test
@@ -456,6 +558,25 @@ public class RequestControllerTest {
         RequestEntity updatedRequestEntity = updatedRequestEntityOpt.get();
         assertThat(updatedRequestEntity.getState()).isEqualTo(RequestState.VERIFIED);
         assertThat(updatedRequestEntity.getBody()).isEqualTo("updatedRequestBody");
+
+        List<RequestStateHistoryEntity> requestStateHistoryEntityList = requestStateHistoryRepository.findAllByRequestId(
+                requestCreatedResponse.id());
+        assertThat(requestStateHistoryEntityList).isNotNull();
+        assertThat(requestStateHistoryEntityList).hasSize(3);
+        Optional<RequestStateHistoryEntity> requestStateHistoryEntityCreatedOpt = requestStateHistoryEntityList.stream()
+                .filter(r -> r.getState() == RequestState.CREATED)
+                .findFirst();
+        assertThat(requestStateHistoryEntityCreatedOpt).isPresent();
+        List<RequestStateHistoryEntity> requestStateHistoryEntityVerifiedList = requestStateHistoryEntityList.stream()
+                .filter(r -> r.getState() == RequestState.VERIFIED)
+                .collect(Collectors.toList());
+        assertThat(requestStateHistoryEntityVerifiedList).isNotNull();
+        assertThat(requestStateHistoryEntityVerifiedList).hasSize(2);
+        Optional<RequestStateHistoryEntity> updatedRequestOpt = requestStateHistoryEntityVerifiedList.stream()
+                .filter(item -> item.getBody().equals("updatedRequestBody"))
+                .findFirst();
+        assertThat(updatedRequestOpt).isPresent();
+        assert(match.test(updatedRequestEntity, updatedRequestOpt.get()));
     }
 
     @Test
@@ -534,4 +655,18 @@ public class RequestControllerTest {
         assertThat(deletedRequestEntity.getState()).isEqualTo(RequestState.DELETED);
         assertThat(deletedRequestEntity.getBody()).isEqualTo("requestBody");
     }
+
+    private final BiPredicate<RequestEntity, RequestStateHistoryEntity> match = (requestEntity, requestStateHistoryEntity) ->
+            requestEntity.getId().equals(requestStateHistoryEntity.getRequestId()) &&
+                    requestEntity.getName().equals(requestStateHistoryEntity.getName()) &&
+                    requestEntity.getBody().equals(requestStateHistoryEntity.getBody()) &&
+                    (
+                            (requestEntity.getReason() == null && requestStateHistoryEntity.getReason() == null) ||
+                                    (requestEntity.getReason() != null && requestEntity.getReason().equals(requestStateHistoryEntity.getReason()))
+                    ) &&
+                    (
+                            (requestEntity.getPublicationIdentifier() == null && requestStateHistoryEntity.getPublicationIdentifier() == null) ||
+                                    (requestEntity.getPublicationIdentifier() != null && requestEntity.getPublicationIdentifier().equals(requestStateHistoryEntity.getPublicationIdentifier()))
+                    ) &&
+                    requestEntity.getState().equals(requestStateHistoryEntity.getState());
 }

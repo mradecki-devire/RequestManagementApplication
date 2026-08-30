@@ -1,7 +1,10 @@
 package michal.radecki.request_management;
 
+import michal.radecki.request_management.entity.RequestEntity;
 import michal.radecki.request_management.exception.RequestCannotBeProcessedException;
 import michal.radecki.request_management.exception.RequestNotFoundException;
+import michal.radecki.request_management.repository.RequestRepository;
+import michal.radecki.request_management.repository.RequestStateHistoryRepository;
 import michal.radecki.request_management.request.CreateRequest;
 import michal.radecki.request_management.request.UpdateBodyRequest;
 import org.junit.jupiter.api.BeforeEach;
@@ -11,6 +14,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.util.Optional;
 
@@ -21,17 +26,21 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class RequestServiceTest {
 
     private RequestService requestService;
     @Mock
     private RequestRepository mockedRequestRepository;
     @Mock
+    private RequestStateHistoryRepository mockedRequestStateHistoryRepository;
+    @Mock
     private PublicationIdentifierGenerator publicationIdentifierGenerator;
 
     @BeforeEach
     void init() {
-        this.requestService = new RequestService(mockedRequestRepository, publicationIdentifierGenerator);
+        this.requestService = new RequestService(mockedRequestRepository, mockedRequestStateHistoryRepository, publicationIdentifierGenerator);
+        when(mockedRequestStateHistoryRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
     }
 
     @Test

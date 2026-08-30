@@ -2,8 +2,12 @@ package michal.radecki.request_management;
 
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
+import michal.radecki.request_management.entity.RequestEntity;
+import michal.radecki.request_management.entity.RequestStateHistoryEntity;
 import michal.radecki.request_management.exception.RequestCannotBeProcessedException;
 import michal.radecki.request_management.exception.RequestNotFoundException;
+import michal.radecki.request_management.repository.RequestRepository;
+import michal.radecki.request_management.repository.RequestStateHistoryRepository;
 import michal.radecki.request_management.request.CreateRequest;
 import michal.radecki.request_management.request.UpdateBodyRequest;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -18,17 +22,21 @@ import java.util.Set;
 public class RequestService {
 
     private final RequestRepository requestRepository;
+    private final RequestStateHistoryRepository requestStateHistoryRepository;
     private final PublicationIdentifierGenerator publicationIdentifierGenerator;
 
     public RequestService(RequestRepository requestRepository,
+                          RequestStateHistoryRepository requestStateHistoryRepository,
                           @Qualifier("myPublicationIdentifierGenerator") PublicationIdentifierGenerator publicationIdentifierGenerator) {
         this.requestRepository = requestRepository;
+        this.requestStateHistoryRepository = requestStateHistoryRepository;
         this.publicationIdentifierGenerator = publicationIdentifierGenerator;
     }
 
     Integer createRequest(@Valid CreateRequest request) {
         RequestEntity entity = new RequestEntity(request.name(), request.body(), RequestState.CREATED);
         entity = requestRepository.save(entity);
+        requestStateHistoryRepository.save(new RequestStateHistoryEntity(entity));
         return entity.getId();
     }
 
@@ -46,6 +54,7 @@ public class RequestService {
             }
             requestEntity.setState(RequestState.DELETED);
             requestEntity.setReason(reason);
+            requestStateHistoryRepository.save(new RequestStateHistoryEntity(requestEntity));
         }
     }
 
@@ -62,6 +71,7 @@ public class RequestService {
                         ", not in CREATED state");
             }
             requestEntity.setState(RequestState.VERIFIED);
+            requestStateHistoryRepository.save(new RequestStateHistoryEntity(requestEntity));
         }
     }
 
@@ -78,6 +88,7 @@ public class RequestService {
                         ", not in VERIFIED state");
             }
             requestEntity.setState(RequestState.ACCEPTED);
+            requestStateHistoryRepository.save(new RequestStateHistoryEntity(requestEntity));
         }
     }
 
@@ -95,6 +106,7 @@ public class RequestService {
             }
             requestEntity.setState(RequestState.REJECTED);
             requestEntity.setReason(reason);
+            requestStateHistoryRepository.save(new RequestStateHistoryEntity(requestEntity));
         }
     }
 
@@ -110,9 +122,10 @@ public class RequestService {
                         " cannot be published because it is in " + requestEntity.getState() + " state" +
                         ", not in ACCEPTED state");
             }
-            requestEntity.setState(RequestState.PUBLISHED);
             String publicationIdentifier = publicationIdentifierGenerator.generate();
             requestEntity.setPublicationIdentifier(publicationIdentifier);
+            requestEntity.setState(RequestState.PUBLISHED);
+            requestStateHistoryRepository.save(new RequestStateHistoryEntity(requestEntity));
         }
     }
 
@@ -129,6 +142,7 @@ public class RequestService {
                         ", not in CREATED or VERIFIED state");
             }
             requestEntity.setBody(request.body());
+            requestStateHistoryRepository.save(new RequestStateHistoryEntity(requestEntity));
         }
     }
 }
