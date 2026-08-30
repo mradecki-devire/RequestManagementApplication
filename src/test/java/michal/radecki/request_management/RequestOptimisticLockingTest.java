@@ -35,6 +35,7 @@ class RequestOptimisticLockingTest {
         request = requestRepository.saveAndFlush(request);
 
         Integer requestId = request.getRequestId();
+        Long initialVersion = request.getVersion();
 
         EntityManager entityManager1 =
                 entityManagerFactory.createEntityManager();
@@ -84,6 +85,6 @@ class RequestOptimisticLockingTest {
                 .isEqualTo("updated by transaction 1");
 
         assertThat(persisted.getVersion())
-                .isEqualTo(1L);
+                .isEqualTo(initialVersion + 1);
     }
 }
