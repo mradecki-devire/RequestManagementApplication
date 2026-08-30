@@ -1,6 +1,7 @@
 package michal.radecki.request_management;
 
 import michal.radecki.request_management.dto.RequestDto;
+import michal.radecki.request_management.dto.RequestStateHistoryDto;
 import michal.radecki.request_management.entity.RequestEntity;
 import michal.radecki.request_management.entity.RequestStateHistoryEntity;
 import michal.radecki.request_management.repository.RequestRepository;
@@ -16,6 +17,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -36,7 +39,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 
 @SpringBootTest
 @AutoConfigureMockMvc
-public class RequestControllerTest {
+public class RequestControllerIntegrationTest {
 
     @Autowired
     private RequestRepository requestRepository;
@@ -80,10 +83,10 @@ public class RequestControllerTest {
         assertThat(requestEntity.getPublicationIdentifier()).isNull();
 
         List<RequestStateHistoryEntity> requestStateHistoryEntityList = requestStateHistoryRepository.findAllByRequestId(
-                requestCreatedResponse.id());
+                requestCreatedResponse.id(), sortByChangedAt());
         assertThat(requestStateHistoryEntityList).isNotNull();
         assertThat(requestStateHistoryEntityList).hasSize(1);
-        assert(match.test(requestEntity, requestStateHistoryEntityList.get(0)));
+        assert (match.test(requestEntity, requestStateHistoryEntityList.get(0)));
     }
 
     @Test
@@ -168,7 +171,7 @@ public class RequestControllerTest {
         assertThat(requestEntity.getReason()).isEqualTo(reason);
 
         List<RequestStateHistoryEntity> requestStateHistoryEntityList = requestStateHistoryRepository.findAllByRequestId(
-                requestCreatedResponse.id());
+                requestCreatedResponse.id(), sortByChangedAt());
         assertThat(requestStateHistoryEntityList).isNotNull();
         assertThat(requestStateHistoryEntityList).hasSize(2);
         Optional<RequestStateHistoryEntity> requestStateHistoryEntityCreatedOpt = requestStateHistoryEntityList.stream()
@@ -179,7 +182,7 @@ public class RequestControllerTest {
                 .filter(r -> r.getState() == RequestState.DELETED)
                 .findFirst();
         assertThat(requestStateHistoryEntityDeletedOpt).isPresent();
-        assert(match.test(requestEntity, requestStateHistoryEntityDeletedOpt.get()));
+        assert (match.test(requestEntity, requestStateHistoryEntityDeletedOpt.get()));
     }
 
     @Test
@@ -240,7 +243,7 @@ public class RequestControllerTest {
         assertThat(requestEntity.getState()).isEqualTo(RequestState.VERIFIED);
 
         List<RequestStateHistoryEntity> requestStateHistoryEntityList = requestStateHistoryRepository.findAllByRequestId(
-                requestCreatedResponse.id());
+                requestCreatedResponse.id(), sortByChangedAt());
         assertThat(requestStateHistoryEntityList).isNotNull();
         assertThat(requestStateHistoryEntityList).hasSize(2);
         Optional<RequestStateHistoryEntity> requestStateHistoryEntityCreatedOpt = requestStateHistoryEntityList.stream()
@@ -251,7 +254,7 @@ public class RequestControllerTest {
                 .filter(r -> r.getState() == RequestState.VERIFIED)
                 .findFirst();
         assertThat(requestStateHistoryEntityVerifiedOpt).isPresent();
-        assert(match.test(requestEntity, requestStateHistoryEntityVerifiedOpt.get()));
+        assert (match.test(requestEntity, requestStateHistoryEntityVerifiedOpt.get()));
     }
 
     @Test
@@ -322,7 +325,7 @@ public class RequestControllerTest {
         assertThat(acceptedRequestEntity.getState()).isEqualTo(RequestState.ACCEPTED);
 
         List<RequestStateHistoryEntity> requestStateHistoryEntityList = requestStateHistoryRepository.findAllByRequestId(
-                requestCreatedResponse.id());
+                requestCreatedResponse.id(), sortByChangedAt());
         assertThat(requestStateHistoryEntityList).isNotNull();
         assertThat(requestStateHistoryEntityList).hasSize(3);
         Optional<RequestStateHistoryEntity> requestStateHistoryEntityCreatedOpt = requestStateHistoryEntityList.stream()
@@ -337,7 +340,7 @@ public class RequestControllerTest {
                 .filter(r -> r.getState() == RequestState.ACCEPTED)
                 .findFirst();
         assertThat(requestStateHistoryEntityAcceptedOpt).isPresent();
-        assert(match.test(acceptedRequestEntity, requestStateHistoryEntityAcceptedOpt.get()));
+        assert (match.test(acceptedRequestEntity, requestStateHistoryEntityAcceptedOpt.get()));
     }
 
     @Test
@@ -400,7 +403,7 @@ public class RequestControllerTest {
         assertThat(rejectedRequestEntity.getReason()).isEqualTo("request is no longer needed");
 
         List<RequestStateHistoryEntity> requestStateHistoryEntityList = requestStateHistoryRepository.findAllByRequestId(
-                requestCreatedResponse.id());
+                requestCreatedResponse.id(), sortByChangedAt());
         assertThat(requestStateHistoryEntityList).isNotNull();
         assertThat(requestStateHistoryEntityList).hasSize(3);
         Optional<RequestStateHistoryEntity> requestStateHistoryEntityCreatedOpt = requestStateHistoryEntityList.stream()
@@ -415,7 +418,7 @@ public class RequestControllerTest {
                 .filter(r -> r.getState() == RequestState.REJECTED)
                 .findFirst();
         assertThat(requestStateHistoryEntityRejectedOpt).isPresent();
-        assert(match.test(rejectedRequestEntity, requestStateHistoryEntityRejectedOpt.get()));
+        assert (match.test(rejectedRequestEntity, requestStateHistoryEntityRejectedOpt.get()));
     }
 
     @Test
@@ -490,7 +493,7 @@ public class RequestControllerTest {
         assertThat(publishedRequestEntity.getPublicationIdentifier().chars()).allMatch(Character::isDigit);
 
         List<RequestStateHistoryEntity> requestStateHistoryEntityList = requestStateHistoryRepository.findAllByRequestId(
-                requestCreatedResponse.id());
+                requestCreatedResponse.id(), sortByChangedAt());
         assertThat(requestStateHistoryEntityList).isNotNull();
         assertThat(requestStateHistoryEntityList).hasSize(4);
         Optional<RequestStateHistoryEntity> requestStateHistoryEntityCreatedOpt = requestStateHistoryEntityList.stream()
@@ -509,7 +512,7 @@ public class RequestControllerTest {
                 .filter(r -> r.getState() == RequestState.PUBLISHED)
                 .findFirst();
         assertThat(requestStateHistoryEntityPublishedOpt).isPresent();
-        assert(match.test(publishedRequestEntity, requestStateHistoryEntityPublishedOpt.get()));
+        assert (match.test(publishedRequestEntity, requestStateHistoryEntityPublishedOpt.get()));
     }
 
     @Test
@@ -572,7 +575,7 @@ public class RequestControllerTest {
         assertThat(updatedRequestEntity.getBody()).isEqualTo("updatedRequestBody");
 
         List<RequestStateHistoryEntity> requestStateHistoryEntityList = requestStateHistoryRepository.findAllByRequestId(
-                requestCreatedResponse.id());
+                requestCreatedResponse.id(), sortByChangedAt());
         assertThat(requestStateHistoryEntityList).isNotNull();
         assertThat(requestStateHistoryEntityList).hasSize(3);
         Optional<RequestStateHistoryEntity> requestStateHistoryEntityCreatedOpt = requestStateHistoryEntityList.stream()
@@ -588,7 +591,7 @@ public class RequestControllerTest {
                 .filter(item -> item.getBody().equals("updatedRequestBody"))
                 .findFirst();
         assertThat(updatedRequestOpt).isPresent();
-        assert(match.test(updatedRequestEntity, updatedRequestOpt.get()));
+        assert (match.test(updatedRequestEntity, updatedRequestOpt.get()));
     }
 
     @Test
@@ -680,7 +683,8 @@ public class RequestControllerTest {
         MvcResult createResult = mockMvc.perform(get("/browse")
                 .contentType(MediaType.APPLICATION_JSON)
         ).andReturn();
-        PageResponse<RequestDto> page = objectMapper.readValue(createResult.getResponse().getContentAsString(), new TypeReference<PageResponse<RequestDto>>(){});
+        PageResponse<RequestDto> page = objectMapper.readValue(createResult.getResponse().getContentAsString(), new TypeReference<PageResponse<RequestDto>>() {
+        });
         // then
         assertThat(page).isNotNull();
         assertThat(page.totalPages()).isEqualTo(2);
@@ -708,7 +712,8 @@ public class RequestControllerTest {
         MvcResult createResult = mockMvc.perform(get("/browse?page=1")
                 .contentType(MediaType.APPLICATION_JSON)
         ).andReturn();
-        PageResponse<RequestDto> page = objectMapper.readValue(createResult.getResponse().getContentAsString(), new TypeReference<PageResponse<RequestDto>>(){});
+        PageResponse<RequestDto> page = objectMapper.readValue(createResult.getResponse().getContentAsString(), new TypeReference<PageResponse<RequestDto>>() {
+        });
         // then
         assertThat(page).isNotNull();
         assertThat(page.totalPages()).isEqualTo(2);
@@ -736,7 +741,8 @@ public class RequestControllerTest {
         MvcResult createResult = mockMvc.perform(get("/browse?name=name_1")
                 .contentType(MediaType.APPLICATION_JSON)
         ).andReturn();
-        PageResponse<RequestDto> page = objectMapper.readValue(createResult.getResponse().getContentAsString(), new TypeReference<PageResponse<RequestDto>>(){});
+        PageResponse<RequestDto> page = objectMapper.readValue(createResult.getResponse().getContentAsString(), new TypeReference<PageResponse<RequestDto>>() {
+        });
         // then
         assertThat(page).isNotNull();
         assertThat(page.totalPages()).isEqualTo(1);
@@ -771,7 +777,8 @@ public class RequestControllerTest {
         MvcResult createResult = mockMvc.perform(get("/browse?state=VERIFIED")
                 .contentType(MediaType.APPLICATION_JSON)
         ).andReturn();
-        PageResponse<RequestDto> page = objectMapper.readValue(createResult.getResponse().getContentAsString(), new TypeReference<PageResponse<RequestDto>>(){});
+        PageResponse<RequestDto> page = objectMapper.readValue(createResult.getResponse().getContentAsString(), new TypeReference<PageResponse<RequestDto>>() {
+        });
         // then
         assertThat(page).isNotNull();
         assertThat(page.totalPages()).isEqualTo(1);
@@ -787,7 +794,93 @@ public class RequestControllerTest {
         assertThat(requestDto.body()).startsWith("body_");
     }
 
-    private Integer createRequest(String name, String body) throws Exception {
+    @Test
+    void when_trying_to_get_audit_then_should_return_record_for_every_request_state_of_specific_request() throws Exception {
+        // given
+        CreateRequest createRequest = new CreateRequest("requestName", "requestBody");
+        MvcResult createResult = mockMvc.perform(post("/create")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(createRequest))
+        ).andReturn();
+        RequestCreatedResponse requestCreatedResponse = objectMapper.readValue(createResult.getResponse().getContentAsString(), RequestCreatedResponse.class);
+        Integer requestId = requestCreatedResponse.id();
+        // when
+        MvcResult verifyResult = mockMvc.perform(post("/verify/" + requestId)
+                .contentType(MediaType.APPLICATION_JSON)
+        ).andReturn();
+        // then
+        assertThat(verifyResult.getResponse().getStatus()).isEqualTo(200);
+        Optional<RequestEntity> requestEntityOpt = requestRepository.findById(requestId);
+        assertThat(requestEntityOpt).isPresent();
+        RequestEntity requestEntity = requestEntityOpt.get();
+        assertThat(requestEntity.getState()).isEqualTo(RequestState.VERIFIED);
+        // when
+        MvcResult acceptedResult = mockMvc.perform(post("/accept/" + requestId)
+                .contentType(MediaType.APPLICATION_JSON)
+        ).andReturn();
+        // then
+        assertThat(acceptedResult.getResponse().getStatus()).isEqualTo(200);
+        Optional<RequestEntity> acceptedRequestEntityOpt = requestRepository.findById(requestId);
+        assertThat(acceptedRequestEntityOpt).isPresent();
+        RequestEntity acceptedRequestEntity = acceptedRequestEntityOpt.get();
+        assertThat(acceptedRequestEntity.getState()).isEqualTo(RequestState.ACCEPTED);
+        // when
+        MvcResult publishedResult = mockMvc.perform(post("/publish/" + requestId)
+                .contentType(MediaType.APPLICATION_JSON)
+        ).andReturn();
+        // then
+        assertThat(publishedResult.getResponse().getStatus()).isEqualTo(200);
+        Optional<RequestEntity> publishedRequestEntityOpt = requestRepository.findById(requestId);
+        assertThat(publishedRequestEntityOpt).isPresent();
+        RequestEntity publishedRequestEntity = publishedRequestEntityOpt.get();
+        assertThat(publishedRequestEntity.getState()).isEqualTo(RequestState.PUBLISHED);
+        assertThat(publishedRequestEntity.getPublicationIdentifier()).isNotNull();
+        assertThat(publishedRequestEntity.getPublicationIdentifier()).isNotBlank();
+        assertThat(publishedRequestEntity.getPublicationIdentifier().chars()).allMatch(Character::isDigit);
+        // when
+        MvcResult auditlogResult = mockMvc.perform(get("/auditlog/" + requestId)
+                .contentType(MediaType.APPLICATION_JSON)
+        ).andReturn();
+        // then
+        assertThat(auditlogResult.getResponse().getStatus()).isEqualTo(200);
+        List<RequestStateHistoryDto> auditlogDto = objectMapper.readValue(auditlogResult.getResponse().getContentAsString(), new TypeReference<List<RequestStateHistoryDto>>(){});
+        assertThat(auditlogDto).isNotEmpty();
+        assertThat(auditlogDto).hasSize(4);
+
+        Optional<RequestStateHistoryDto> createdDtoOpt = auditlogDto.stream().filter(item -> item.state().equals(RequestState.CREATED)).findFirst();
+        assertThat(createdDtoOpt).isPresent();
+        RequestStateHistoryDto createdDto = createdDtoOpt.get();
+
+        Optional<RequestStateHistoryDto> verifiedDtoOpt = auditlogDto.stream().filter(item -> item.state().equals(RequestState.VERIFIED)).findFirst();
+        assertThat(verifiedDtoOpt).isPresent();
+        RequestStateHistoryDto verifiedDto = verifiedDtoOpt.get();
+        assertThat(verifiedDto.changedAt().isAfter(createdDto.changedAt())).isTrue();
+
+        Optional<RequestStateHistoryDto> acceptedDtoOpt = auditlogDto.stream().filter(item -> item.state().equals(RequestState.ACCEPTED)).findFirst();
+        assertThat(acceptedDtoOpt).isPresent();
+        RequestStateHistoryDto acceptedDto = acceptedDtoOpt.get();
+        assertThat(acceptedDto.changedAt().isAfter(verifiedDto.changedAt())).isTrue();
+
+        Optional<RequestStateHistoryDto> publishedDtoOpt = auditlogDto.stream().filter(item -> item.state().equals(RequestState.PUBLISHED)).findFirst();
+        assertThat(publishedDtoOpt).isPresent();
+        RequestStateHistoryDto publishedDto = publishedDtoOpt.get();
+        assertThat(publishedDto.changedAt().isAfter(acceptedDto.changedAt())).isTrue();
+    }
+
+    @Test
+    void when_trying_to_get_audit_for_not_existing_request_id_then_should_return_not_found_response() throws Exception {
+        // given
+        // when
+        MvcResult auditlogResult = mockMvc.perform(get("/auditlog/1")
+                .contentType(MediaType.APPLICATION_JSON)
+        ).andReturn();
+        // then
+        assertThat(auditlogResult.getResponse().getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
+        assertThat(auditlogResult.getResponse().getContentAsString()).contains("Request with id 1 not found");
+    }
+
+
+        private Integer createRequest(String name, String body) throws Exception {
         CreateRequest createRequest = new CreateRequest(name, body);
         MvcResult createResult = mockMvc.perform(post("/create")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -816,4 +909,8 @@ public class RequestControllerTest {
                                     (requestEntity.getPublicationIdentifier() != null && requestEntity.getPublicationIdentifier().equals(requestStateHistoryEntity.getPublicationIdentifier()))
                     ) &&
                     requestEntity.getState().equals(requestStateHistoryEntity.getState());
+
+    private Sort sortByChangedAt() {
+        return Sort.by(Sort.Direction.ASC, "changedAt");
+    }
 }

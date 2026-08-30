@@ -3,6 +3,7 @@ package michal.radecki.request_management;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import michal.radecki.request_management.dto.RequestDto;
+import michal.radecki.request_management.dto.RequestStateHistoryDto;
 import michal.radecki.request_management.request.CreateRequest;
 import michal.radecki.request_management.request.RequestWithReason;
 import michal.radecki.request_management.request.UpdateBodyRequest;
@@ -18,6 +19,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -74,5 +77,11 @@ public class RequestController {
                                            @RequestParam(required = false) String name,
                                            @RequestParam(required = false) RequestState state) {
         return requestService.getRequestsPage(page, size, name, state);
+    }
+
+    @GetMapping("auditlog/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    public List<RequestStateHistoryDto> getAuditLog(@PathVariable Integer id) {
+        return requestService.getAuditLog(id);
     }
 }

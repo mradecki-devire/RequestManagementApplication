@@ -1,7 +1,9 @@
 package michal.radecki.request_management;
 
 import michal.radecki.request_management.dto.RequestDto;
+import michal.radecki.request_management.dto.RequestStateHistoryDto;
 import michal.radecki.request_management.entity.RequestEntity;
+import michal.radecki.request_management.entity.RequestStateHistoryEntity;
 import michal.radecki.request_management.exception.RequestCannotBeProcessedException;
 import michal.radecki.request_management.exception.RequestNotFoundException;
 import michal.radecki.request_management.repository.RequestRepository;
@@ -20,6 +22,7 @@ import org.mockito.quality.Strictness;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,6 +32,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -353,6 +357,34 @@ public class RequestServiceTest {
         // then
         assertThat(requestsPage.getTotalElements()).isEqualTo(7);
         assertThat(requestsPage.getTotalPages()).isEqualTo(1);
+    }
+
+    @Test
+    void when_trying_to_audit_log_then_should_return_request_log_for_id() {
+        // given
+        Integer requestId = 1;
+        RequestEntity requestEntity = createRequest(1, RequestState.CREATED);
+        requestEntity.setId(requestId);
+        RequestStateHistoryEntity requestStateHistoryForCreatedEntity = new RequestStateHistoryEntity(requestEntity);
+        requestEntity.setState(RequestState.VERIFIED);
+        RequestStateHistoryEntity requestStateHistoryForVerifiedEntity = new RequestStateHistoryEntity(requestEntity);
+        requestEntity.setState(RequestState.ACCEPTED);
+        RequestStateHistoryEntity requestStateHistoryForAcceptedEntity = new RequestStateHistoryEntity(requestEntity);
+        requestEntity.setState(RequestState.PUBLISHED);
+        RequestStateHistoryEntity requestStateHistoryForPublishedEntity = new RequestStateHistoryEntity(requestEntity);
+        List<RequestStateHistoryEntity> requestStatesHistory = List.of(requestStateHistoryForCreatedEntity, requestStateHistoryForVerifiedEntity,
+                requestStateHistoryForAcceptedEntity, requestStateHistoryForPublishedEntity);
+        when(mockedRequestStateHistoryRepository.findAllByRequestId(eq(requestId), any(Sort.class))).thenReturn(requestStatesHistory);
+        // when
+        List<RequestStateHistoryDto> history = requestService.getAuditLog(requestId);
+        // then
+        assertThat(history).isNotNull();
+        assertThat(history).isNotEmpty();
+        assertThat(history).hasSize(4);
+        assertThat(history.get(0).state()).isEqualTo(RequestState.CREATED);
+        assertThat(history.get(1).state()).isEqualTo(RequestState.VERIFIED);
+        assertThat(history.get(2).state()).isEqualTo(RequestState.ACCEPTED);
+        assertThat(history.get(3).state()).isEqualTo(RequestState.PUBLISHED);
     }
 
     private List<RequestEntity> createRequests(int amount, RequestState state) {

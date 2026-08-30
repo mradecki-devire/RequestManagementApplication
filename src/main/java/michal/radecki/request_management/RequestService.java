@@ -4,6 +4,7 @@ import jakarta.annotation.Nullable;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import michal.radecki.request_management.dto.RequestDto;
+import michal.radecki.request_management.dto.RequestStateHistoryDto;
 import michal.radecki.request_management.entity.RequestEntity;
 import michal.radecki.request_management.entity.RequestStateHistoryEntity;
 import michal.radecki.request_management.exception.RequestCannotBeProcessedException;
@@ -21,8 +22,10 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @Validated
@@ -173,5 +176,14 @@ public class RequestService {
         } else result = requestRepository.findAll(page);
         if (result == null) return null;
         return result.map(RequestMapper::toDto);
+    }
+
+    List<RequestStateHistoryDto> getAuditLog(Integer requestId) {
+        List<RequestStateHistoryEntity> states = requestStateHistoryRepository.findAllByRequestId(
+                requestId, Sort.by(Sort.Direction.ASC, "changedAt"));
+        if (states.isEmpty()) {
+            throw new RequestNotFoundException(requestId);
+        }
+        return states.stream().map(RequestMapper::toDto).collect(Collectors.toList());
     }
 }
