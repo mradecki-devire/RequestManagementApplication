@@ -3,6 +3,7 @@ package michal.radecki.request_management;
 import michal.radecki.request_management.request.CreateRequest;
 import michal.radecki.request_management.request.DeleteRequest;
 import michal.radecki.request_management.response.CustomErrorResponse;
+import michal.radecki.request_management.response.RequestCreatedResponse;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

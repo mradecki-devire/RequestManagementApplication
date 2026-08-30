@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import michal.radecki.request_management.request.CreateRequest;
 import michal.radecki.request_management.request.DeleteRequest;
+import michal.radecki.request_management.response.RequestCreatedResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
