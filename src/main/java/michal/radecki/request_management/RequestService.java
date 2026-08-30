@@ -47,7 +47,7 @@ public class RequestService {
         RequestEntity entity = RequestMapper.toEntity(request);
         entity = requestRepository.save(entity);
         requestStateHistoryRepository.save(new RequestStateHistoryEntity(entity));
-        return entity.getId();
+        return entity.getRequestId();
     }
 
     @Transactional
@@ -59,7 +59,7 @@ public class RequestService {
         } else {
             RequestEntity requestEntity = requestEntityOpt.get();
             if (requestEntity.getState() != RequestState.CREATED) {
-                throw new RequestCannotBeProcessedException("Request with id " + requestId +
+                throw new RequestCannotBeProcessedException("Request with requestId " + requestId +
                         " cannot be deleted because it is in " + requestEntity.getState() + " state" +
                         ", not in CREATED state");
             }
@@ -77,7 +77,7 @@ public class RequestService {
         } else {
             RequestEntity requestEntity = requestEntityOpt.get();
             if (requestEntity.getState() != RequestState.CREATED) {
-                throw new RequestCannotBeProcessedException("Request with id " + requestId +
+                throw new RequestCannotBeProcessedException("Request with requestId " + requestId +
                         " cannot be verified because it is in " + requestEntity.getState() + " state" +
                         ", not in CREATED state");
             }
@@ -94,7 +94,7 @@ public class RequestService {
         } else {
             RequestEntity requestEntity = requestEntityOpt.get();
             if (requestEntity.getState() != RequestState.VERIFIED) {
-                throw new RequestCannotBeProcessedException("Request with id " + requestId +
+                throw new RequestCannotBeProcessedException("Request with requestId " + requestId +
                         " cannot be accepted because it is in " + requestEntity.getState() + " state" +
                         ", not in VERIFIED state");
             }
@@ -112,7 +112,7 @@ public class RequestService {
         } else {
             RequestEntity requestEntity = requestEntityOpt.get();
             if (!Set.of(RequestState.VERIFIED, RequestState.ACCEPTED).contains(requestEntity.getState())) {
-                throw new RequestCannotBeProcessedException("Request with id " + requestId +
+                throw new RequestCannotBeProcessedException("Request with requestId " + requestId +
                         " cannot be rejected because it is in " + requestEntity.getState() + " state" +
                         ", not in VERIFIED or ACCEPTED state");
             }
@@ -130,7 +130,7 @@ public class RequestService {
         } else {
             RequestEntity requestEntity = requestEntityOpt.get();
             if (requestEntity.getState() != RequestState.ACCEPTED) {
-                throw new RequestCannotBeProcessedException("Request with id " + requestId +
+                throw new RequestCannotBeProcessedException("Request with requestId " + requestId +
                         " cannot be published because it is in " + requestEntity.getState() + " state" +
                         ", not in ACCEPTED state");
             }
@@ -150,7 +150,7 @@ public class RequestService {
         } else {
             RequestEntity requestEntity = requestEntityOpt.get();
             if (!Set.of(RequestState.CREATED, RequestState.VERIFIED).contains(requestEntity.getState())) {
-                throw new RequestCannotBeProcessedException("Request with id " + requestId +
+                throw new RequestCannotBeProcessedException("Request with requestId " + requestId +
                         " cannot be updated because it is in " + requestEntity.getState() + " state" +
                         ", not in CREATED or VERIFIED state");
             }
@@ -163,7 +163,7 @@ public class RequestService {
                                      int size,
                                      @Nullable String name,
                                      @Nullable RequestState state) {
-        Pageable page = PageRequest.of(pageNumber, size, Sort.by("id").ascending());
+        Pageable page = PageRequest.of(pageNumber, size, Sort.by("requestId").ascending());
         Page<RequestEntity> result;
         if (name != null) {
             if (state != null) {

@@ -23,7 +23,7 @@ public class RequestEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private Integer requestId;
     private RequestState state;
     private String name;
     private String body;

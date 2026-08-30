@@ -34,7 +34,7 @@ public class RequestStateHistoryEntity {
     private LocalDateTime changedAt;
 
     public RequestStateHistoryEntity(RequestEntity requestEntity) {
-        this.requestId = requestEntity.getId();
+        this.requestId = requestEntity.getRequestId();
         this.name = requestEntity.getName();;
         this.body = requestEntity.getBody();
         this.reason = requestEntity.getReason();

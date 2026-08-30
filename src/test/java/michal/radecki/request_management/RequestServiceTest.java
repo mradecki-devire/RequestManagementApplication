@@ -59,7 +59,7 @@ public class RequestServiceTest {
         Integer id = 127345;
         CreateRequest createRequest = new CreateRequest("requestName", "requestBody");
         RequestEntity requestEntity = new RequestEntity(createRequest.name(), createRequest.body(), RequestState.CREATED);
-        requestEntity.setId(id);
+        requestEntity.setRequestId(id);
         when(mockedRequestRepository.save(any())).thenReturn(requestEntity);
         //when
         Integer createdRequestId = requestService.createRequest(createRequest);
@@ -74,7 +74,7 @@ public class RequestServiceTest {
         Integer id = 127345;
         String reason = "request is no longer needed";
         RequestEntity requestEntity = new RequestEntity("requestName", "requestBody", RequestState.CREATED);
-        requestEntity.setId(id);
+        requestEntity.setRequestId(id);
         when(mockedRequestRepository.findById(id)).thenReturn(Optional.of(requestEntity));
         //when //then
         assertDoesNotThrow(() -> requestService.deleteRequest(id, reason));
@@ -93,12 +93,12 @@ public class RequestServiceTest {
         Integer id = 127345;
         String reason = "request is no longer needed";
         RequestEntity requestEntity = new RequestEntity("requestName", "requestBody", state);
-        requestEntity.setId(id);
+        requestEntity.setRequestId(id);
         when(mockedRequestRepository.findById(id)).thenReturn(Optional.of(requestEntity));
         //when //then
         RequestCannotBeProcessedException exception = assertThrows(RequestCannotBeProcessedException.class,
                 () -> requestService.deleteRequest(id, reason));
-        assertThat(exception.getMessage()).isEqualTo("Request with id " + id +
+        assertThat(exception.getMessage()).isEqualTo("Request with requestId " + id +
                 " cannot be deleted because it is in " + state.name() + " state" +
                 ", not in CREATED state");
     }
@@ -112,7 +112,7 @@ public class RequestServiceTest {
         //when //then
         RequestNotFoundException exception = assertThrows(RequestNotFoundException.class,
                 () -> requestService.deleteRequest(id, reason));
-        assertThat(exception.getMessage()).isEqualTo("Request with id " + id + " not found");
+        assertThat(exception.getMessage()).isEqualTo("Request with requestId " + id + " not found");
     }
 
     @Test
@@ -120,7 +120,7 @@ public class RequestServiceTest {
         //given
         Integer id = 127345;
         RequestEntity requestEntity = new RequestEntity("requestName", "requestBody", RequestState.CREATED);
-        requestEntity.setId(id);
+        requestEntity.setRequestId(id);
         when(mockedRequestRepository.findById(id)).thenReturn(Optional.of(requestEntity));
         //when //then
         assertDoesNotThrow(() -> requestService.verifyRequest(id));
@@ -134,7 +134,7 @@ public class RequestServiceTest {
         //when //then
         RequestNotFoundException exception = assertThrows(RequestNotFoundException.class,
                 () -> requestService.verifyRequest(id));
-        assertThat(exception.getMessage()).isEqualTo("Request with id " + id + " not found");
+        assertThat(exception.getMessage()).isEqualTo("Request with requestId " + id + " not found");
     }
 
     @ParameterizedTest
@@ -150,12 +150,12 @@ public class RequestServiceTest {
         Integer id = 127345;
         String reason = "request is no longer needed";
         RequestEntity requestEntity = new RequestEntity("requestName", "requestBody", state);
-        requestEntity.setId(id);
+        requestEntity.setRequestId(id);
         when(mockedRequestRepository.findById(id)).thenReturn(Optional.of(requestEntity));
         //when //then
         RequestCannotBeProcessedException exception = assertThrows(RequestCannotBeProcessedException.class,
                 () -> requestService.verifyRequest(id));
-        assertThat(exception.getMessage()).isEqualTo("Request with id " + id +
+        assertThat(exception.getMessage()).isEqualTo("Request with requestId " + id +
                 " cannot be verified because it is in " + state.name() + " state" +
                 ", not in CREATED state");
     }
@@ -165,7 +165,7 @@ public class RequestServiceTest {
         //given
         Integer id = 127345;
         RequestEntity requestEntity = new RequestEntity("requestName", "requestBody", RequestState.VERIFIED);
-        requestEntity.setId(id);
+        requestEntity.setRequestId(id);
         when(mockedRequestRepository.findById(id)).thenReturn(Optional.of(requestEntity));
         //when //then
         assertDoesNotThrow(() -> requestService.acceptRequest(id));
@@ -179,7 +179,7 @@ public class RequestServiceTest {
         //when //then
         RequestNotFoundException exception = assertThrows(RequestNotFoundException.class,
                 () -> requestService.acceptRequest(id));
-        assertThat(exception.getMessage()).isEqualTo("Request with id " + id + " not found");
+        assertThat(exception.getMessage()).isEqualTo("Request with requestId " + id + " not found");
     }
 
     @ParameterizedTest
@@ -194,12 +194,12 @@ public class RequestServiceTest {
         //given
         Integer id = 127345;
         RequestEntity requestEntity = new RequestEntity("requestName", "requestBody", state);
-        requestEntity.setId(id);
+        requestEntity.setRequestId(id);
         when(mockedRequestRepository.findById(id)).thenReturn(Optional.of(requestEntity));
         //when //then
         RequestCannotBeProcessedException exception = assertThrows(RequestCannotBeProcessedException.class,
                 () -> requestService.acceptRequest(id));
-        assertThat(exception.getMessage()).isEqualTo("Request with id " + id +
+        assertThat(exception.getMessage()).isEqualTo("Request with requestId " + id +
                 " cannot be accepted because it is in " + state.name() + " state" +
                 ", not in VERIFIED state");
     }
@@ -209,7 +209,7 @@ public class RequestServiceTest {
         //given
         Integer id = 127345;
         RequestEntity requestEntity = new RequestEntity("requestName", "requestBody", RequestState.VERIFIED);
-        requestEntity.setId(id);
+        requestEntity.setRequestId(id);
         when(mockedRequestRepository.findById(id)).thenReturn(Optional.of(requestEntity));
         //when //then
         assertDoesNotThrow(() -> requestService.rejectRequest(id, "request is no longer needed"));
@@ -223,7 +223,7 @@ public class RequestServiceTest {
         //when //then
         RequestNotFoundException exception = assertThrows(RequestNotFoundException.class,
                 () -> requestService.rejectRequest(id, "request is no longer needed"));
-        assertThat(exception.getMessage()).isEqualTo("Request with id " + id + " not found");
+        assertThat(exception.getMessage()).isEqualTo("Request with requestId " + id + " not found");
     }
 
     @ParameterizedTest
@@ -237,12 +237,12 @@ public class RequestServiceTest {
         //given
         Integer id = 127345;
         RequestEntity requestEntity = new RequestEntity("requestName", "requestBody", state);
-        requestEntity.setId(id);
+        requestEntity.setRequestId(id);
         when(mockedRequestRepository.findById(id)).thenReturn(Optional.of(requestEntity));
         //when //then
         RequestCannotBeProcessedException exception = assertThrows(RequestCannotBeProcessedException.class,
                 () -> requestService.rejectRequest(id, "request is no longer needed"));
-        assertThat(exception.getMessage()).isEqualTo("Request with id " + id +
+        assertThat(exception.getMessage()).isEqualTo("Request with requestId " + id +
                 " cannot be rejected because it is in " + state.name() + " state" +
                 ", not in VERIFIED or ACCEPTED state");
     }
@@ -252,7 +252,7 @@ public class RequestServiceTest {
         //given
         Integer id = 127345;
         RequestEntity requestEntity = new RequestEntity("requestName", "requestBody", RequestState.ACCEPTED);
-        requestEntity.setId(id);
+        requestEntity.setRequestId(id);
         when(mockedRequestRepository.findById(id)).thenReturn(Optional.of(requestEntity));
         when(publicationIdentifierGenerator.generate()).thenReturn("123123");
         //when //then
@@ -267,7 +267,7 @@ public class RequestServiceTest {
         //when //then
         RequestNotFoundException exception = assertThrows(RequestNotFoundException.class,
                 () -> requestService.publishRequest(id));
-        assertThat(exception.getMessage()).isEqualTo("Request with id " + id + " not found");
+        assertThat(exception.getMessage()).isEqualTo("Request with requestId " + id + " not found");
     }
 
     @ParameterizedTest
@@ -282,12 +282,12 @@ public class RequestServiceTest {
         //given
         Integer id = 127345;
         RequestEntity requestEntity = new RequestEntity("requestName", "requestBody", state);
-        requestEntity.setId(id);
+        requestEntity.setRequestId(id);
         when(mockedRequestRepository.findById(id)).thenReturn(Optional.of(requestEntity));
         //when //then
         RequestCannotBeProcessedException exception = assertThrows(RequestCannotBeProcessedException.class,
                 () -> requestService.publishRequest(id));
-        assertThat(exception.getMessage()).isEqualTo("Request with id " + id +
+        assertThat(exception.getMessage()).isEqualTo("Request with requestId " + id +
                 " cannot be published because it is in " + state.name() + " state" +
                 ", not in ACCEPTED state");
     }
@@ -302,7 +302,7 @@ public class RequestServiceTest {
         Integer id = 127345;
         String newBody = "new body";
         RequestEntity requestEntity = new RequestEntity("requestName", "requestBody", RequestState.CREATED);
-        requestEntity.setId(id);
+        requestEntity.setRequestId(id);
         when(mockedRequestRepository.findById(id)).thenReturn(Optional.of(requestEntity));
         //when //then
         assertDoesNotThrow(() -> requestService.updateBody(id, new UpdateBodyRequest(newBody)));
@@ -319,12 +319,12 @@ public class RequestServiceTest {
         //given
         Integer id = 127345;
         RequestEntity requestEntity = new RequestEntity("requestName", "requestBody", state);
-        requestEntity.setId(id);
+        requestEntity.setRequestId(id);
         when(mockedRequestRepository.findById(id)).thenReturn(Optional.of(requestEntity));
         //when //then
         RequestCannotBeProcessedException exception = assertThrows(RequestCannotBeProcessedException.class,
                 () -> requestService.updateBody(id, new UpdateBodyRequest("newBody")));
-        assertThat(exception.getMessage()).isEqualTo("Request with id " + id +
+        assertThat(exception.getMessage()).isEqualTo("Request with requestId " + id +
                 " cannot be updated because it is in " + state.name() + " state" +
                 ", not in CREATED or VERIFIED state");
     }
@@ -364,7 +364,7 @@ public class RequestServiceTest {
         // given
         Integer requestId = 1;
         RequestEntity requestEntity = createRequest(1, RequestState.CREATED);
-        requestEntity.setId(requestId);
+        requestEntity.setRequestId(requestId);
         RequestStateHistoryEntity requestStateHistoryForCreatedEntity = new RequestStateHistoryEntity(requestEntity);
         requestEntity.setState(RequestState.VERIFIED);
         RequestStateHistoryEntity requestStateHistoryForVerifiedEntity = new RequestStateHistoryEntity(requestEntity);

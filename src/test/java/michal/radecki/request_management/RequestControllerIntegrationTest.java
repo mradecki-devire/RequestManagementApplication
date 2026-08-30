@@ -75,7 +75,7 @@ public class RequestControllerIntegrationTest {
         Optional<RequestEntity> requestEntityOpt = requestRepository.findById(requestCreatedResponse.id());
         assertThat(requestEntityOpt).isPresent();
         RequestEntity requestEntity = requestEntityOpt.get();
-        assertThat(requestEntity.getId()).isEqualTo(requestCreatedResponse.id());
+        assertThat(requestEntity.getRequestId()).isEqualTo(requestCreatedResponse.id());
         assertThat(requestEntity.getName()).isEqualTo("requestName");
         assertThat(requestEntity.getBody()).isEqualTo("requestBody");
         assertThat(requestEntity.getState()).isEqualTo(RequestState.CREATED);
@@ -217,7 +217,7 @@ public class RequestControllerIntegrationTest {
         // then
         assertThat(deleteResult2.getResponse().getStatus()).isEqualTo(400);
         CustomErrorResponse errorResponse = objectMapper.readValue(deleteResult2.getResponse().getContentAsString(), CustomErrorResponse.class);
-        assertThat(errorResponse.message()).isEqualTo("Request with id " + requestId +
+        assertThat(errorResponse.message()).isEqualTo("Request with requestId " + requestId +
                 " cannot be deleted because it is in DELETED state, not in CREATED state");
     }
 
@@ -288,7 +288,7 @@ public class RequestControllerIntegrationTest {
         // then
         assertThat(verifyResult.getResponse().getStatus()).isEqualTo(400);
         CustomErrorResponse errorResponse = objectMapper.readValue(verifyResult.getResponse().getContentAsString(), CustomErrorResponse.class);
-        assertThat(errorResponse.message()).isEqualTo("Request with id " + requestId +
+        assertThat(errorResponse.message()).isEqualTo("Request with requestId " + requestId +
                 " cannot be verified because it is in DELETED state" +
                 ", not in CREATED state");
     }
@@ -364,7 +364,7 @@ public class RequestControllerIntegrationTest {
         RequestEntity createdRequestEntity = createdRequestEntityOpt.get();
         assertThat(createdRequestEntity.getState()).isEqualTo(RequestState.CREATED);
         CustomErrorResponse errorResponse = objectMapper.readValue(acceptedResult.getResponse().getContentAsString(), CustomErrorResponse.class);
-        assertThat(errorResponse.message()).isEqualTo("Request with id " + requestId +
+        assertThat(errorResponse.message()).isEqualTo("Request with requestId " + requestId +
                 " cannot be accepted because it is in CREATED state" +
                 ", not in VERIFIED state");
     }
@@ -443,7 +443,7 @@ public class RequestControllerIntegrationTest {
         RequestEntity createdRequestEntity = createdRequestEntityOpt.get();
         assertThat(createdRequestEntity.getState()).isEqualTo(RequestState.CREATED);
         CustomErrorResponse errorResponse = objectMapper.readValue(rejectedResult.getResponse().getContentAsString(), CustomErrorResponse.class);
-        assertThat(errorResponse.message()).isEqualTo("Request with id " + requestId +
+        assertThat(errorResponse.message()).isEqualTo("Request with requestId " + requestId +
                 " cannot be rejected because it is in CREATED state" +
                 ", not in VERIFIED or ACCEPTED state");
     }
@@ -536,7 +536,7 @@ public class RequestControllerIntegrationTest {
         RequestEntity createdRequestEntity = createdRequestEntityOpt.get();
         assertThat(createdRequestEntity.getState()).isEqualTo(RequestState.CREATED);
         CustomErrorResponse errorResponse = objectMapper.readValue(publishedResult.getResponse().getContentAsString(), CustomErrorResponse.class);
-        assertThat(errorResponse.message()).isEqualTo("Request with id " + requestId +
+        assertThat(errorResponse.message()).isEqualTo("Request with requestId " + requestId +
                 " cannot be published because it is in CREATED state" +
                 ", not in ACCEPTED state");
     }
@@ -661,7 +661,7 @@ public class RequestControllerIntegrationTest {
         // then
         assertThat(updatedResult.getResponse().getStatus()).isEqualTo(400);
         CustomErrorResponse errorResponse = objectMapper.readValue(updatedResult.getResponse().getContentAsString(), CustomErrorResponse.class);
-        assertThat(errorResponse.message()).isEqualTo("Request with id " + requestId +
+        assertThat(errorResponse.message()).isEqualTo("Request with requestId " + requestId +
                 " cannot be updated because it is in DELETED state" +
                 ", not in CREATED or VERIFIED state");
         Optional<RequestEntity> deletedRequestEntityOpt = requestRepository.findById(requestId);
@@ -876,7 +876,7 @@ public class RequestControllerIntegrationTest {
         ).andReturn();
         // then
         assertThat(auditlogResult.getResponse().getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
-        assertThat(auditlogResult.getResponse().getContentAsString()).contains("Request with id 1 not found");
+        assertThat(auditlogResult.getResponse().getContentAsString()).contains("Request with requestId 1 not found");
     }
 
 
@@ -897,7 +897,7 @@ public class RequestControllerIntegrationTest {
     }
 
     private final BiPredicate<RequestEntity, RequestStateHistoryEntity> match = (requestEntity, requestStateHistoryEntity) ->
-            requestEntity.getId().equals(requestStateHistoryEntity.getRequestId()) &&
+            requestEntity.getRequestId().equals(requestStateHistoryEntity.getRequestId()) &&
                     requestEntity.getName().equals(requestStateHistoryEntity.getName()) &&
                     requestEntity.getBody().equals(requestStateHistoryEntity.getBody()) &&
                     (

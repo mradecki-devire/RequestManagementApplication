@@ -34,40 +34,40 @@ public class RequestController {
         return new RequestCreatedResponse(requestService.createRequest(request));
     }
 
-    @DeleteMapping("{id}")
+    @DeleteMapping("{requestId}")
     @ResponseStatus(HttpStatus.OK)
-    public void deleteRequest(@PathVariable Integer id, @RequestBody @Valid RequestWithReason request) {
-        requestService.deleteRequest(id, request.reason());
+    public void deleteRequest(@PathVariable Integer requestId, @RequestBody @Valid RequestWithReason request) {
+        requestService.deleteRequest(requestId, request.reason());
     }
 
-    @PostMapping("verify/{id}")
+    @PostMapping("verify/{requestId}")
     @ResponseStatus(HttpStatus.OK)
-    public void verifyRequest(@PathVariable Integer id) {
-        requestService.verifyRequest(id);
+    public void verifyRequest(@PathVariable Integer requestId) {
+        requestService.verifyRequest(requestId);
     }
 
-    @PostMapping("accept/{id}")
+    @PostMapping("accept/{requestId}")
     @ResponseStatus(HttpStatus.OK)
-    public void acceptRequest(@PathVariable Integer id) {
-        requestService.acceptRequest(id);
+    public void acceptRequest(@PathVariable Integer requestId) {
+        requestService.acceptRequest(requestId);
     }
 
-    @PostMapping("reject/{id}")
+    @PostMapping("reject/{requestId}")
     @ResponseStatus(HttpStatus.OK)
-    public void rejectRequest(@PathVariable Integer id, @RequestBody @Valid RequestWithReason request) {
-        requestService.rejectRequest(id, request.reason());
+    public void rejectRequest(@PathVariable Integer requestId, @RequestBody @Valid RequestWithReason request) {
+        requestService.rejectRequest(requestId, request.reason());
     }
 
-    @PostMapping("publish/{id}")
+    @PostMapping("publish/{requestId}")
     @ResponseStatus(HttpStatus.OK)
-    public void publishRequest(@PathVariable Integer id) {
-        requestService.publishRequest(id);
+    public void publishRequest(@PathVariable Integer requestId) {
+        requestService.publishRequest(requestId);
     }
 
-    @PutMapping("update/{id}")
+    @PutMapping("update/{requestId}")
     @ResponseStatus(HttpStatus.OK)
-    public void updateBody(@PathVariable Integer id, @RequestBody @Valid UpdateBodyRequest request) {
-        requestService.updateBody(id, request);
+    public void updateBody(@PathVariable Integer requestId, @RequestBody @Valid UpdateBodyRequest request) {
+        requestService.updateBody(requestId, request);
     }
 
     @GetMapping("browse")
@@ -79,9 +79,9 @@ public class RequestController {
         return requestService.getRequestsPage(page, size, name, state);
     }
 
-    @GetMapping("auditlog/{id}")
+    @GetMapping("auditlog/{requestId}")
     @ResponseStatus(HttpStatus.OK)
-    public List<RequestStateHistoryDto> getAuditLog(@PathVariable Integer id) {
-        return requestService.getAuditLog(id);
+    public List<RequestStateHistoryDto> getAuditLog(@PathVariable Integer requestId) {
+        return requestService.getAuditLog(requestId);
     }
 }
