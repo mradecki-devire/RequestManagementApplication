@@ -41,7 +41,7 @@ public class RequestController {
             summary = "Create request",
             description = "Creates a new request with CREATED state. Both name and body fields are required and can not be blank."
     )
-    @PostMapping("create")
+    @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public RequestCreatedResponse createRequest(@RequestBody @Valid CreateRequest request) {
         return new RequestCreatedResponse(requestService.createRequest(request));
@@ -106,7 +106,7 @@ public class RequestController {
             summary = "Update request body",
             description = "Updates the body of the request with the given id. The body can only be modified when the request is in CREATED or VERIFIED state"
     )
-    @PutMapping("{requestId}/update")
+    @PutMapping("{requestId}")
     @ResponseStatus(HttpStatus.OK)
     public void updateBody(@PathVariable Integer requestId, @RequestBody @Valid UpdateBodyRequest request) {
         requestService.updateBody(requestId, request);

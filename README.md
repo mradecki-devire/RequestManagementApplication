@@ -172,13 +172,13 @@ All request-related endpoints are exposed under the `/requests` base path.
 
 | Method | Endpoint | Description                                                                   |
 |---|---|-------------------------------------------------------------------------------|
-| `POST` | `/requests/create` | Creates a new request in the `CREATED` state                                  |
+| `POST` | `/requests` | Creates a new request in the `CREATED` state                                  |
 | `DELETE` | `/requests/{requestId}` | Deletes a request in the `CREATED` state                                      |
 | `POST` | `/requests/{requestId}/verify` | Verifies a request and hanges the request state from `CREATED` to `VERIFIED`  |
 | `POST` | `/requests/{requestId}/accept` | Accepts a request and changes the request state from `VERIFIED` to `ACCEPTED` |
 | `POST` | `/requests/{requestId}/reject` | Rejects a request in the `VERIFIED` or `ACCEPTED` state                       |
 | `POST` | `/requests/{requestId}/publish` | Publishes a request in the `ACCEPTED` state                                   |
-| `PUT` | `/requests/{requestId}/update` | Updates the body of a request in the `CREATED` or `VERIFIED` state            |
+| `PUT` | `/requests/{requestId}` | Updates the body of a request in the `CREATED` or `VERIFIED` state            |
 | `GET` | `/requests/browse` | Returns a paginated and optionally filtered list of requests                  |
 | `GET` | `/requests/{requestId}/auditlog` | Returns the complete audit history of a request                               |
 
