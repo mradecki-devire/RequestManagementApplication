@@ -2,16 +2,20 @@ package michal.radecki.request_management;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import michal.radecki.request_management.dto.RequestDto;
 import michal.radecki.request_management.request.CreateRequest;
 import michal.radecki.request_management.request.RequestWithReason;
 import michal.radecki.request_management.request.UpdateBodyRequest;
 import michal.radecki.request_management.response.RequestCreatedResponse;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -61,5 +65,14 @@ public class RequestController {
     @ResponseStatus(HttpStatus.OK)
     public void updateBody(@PathVariable Integer id, @RequestBody @Valid UpdateBodyRequest request) {
         requestService.updateBody(id, request);
+    }
+
+    @GetMapping("browse")
+    @ResponseStatus(HttpStatus.OK)
+    public Page<RequestDto> browseRequests(@RequestParam(required = false, defaultValue = "0") Integer page,
+                                           @RequestParam(required = false, defaultValue = "10") Integer size,
+                                           @RequestParam(required = false) String name,
+                                           @RequestParam(required = false) RequestState state) {
+        return requestService.getRequestsPage(page, size, name, state);
     }
 }

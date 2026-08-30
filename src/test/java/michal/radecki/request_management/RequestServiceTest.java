@@ -1,5 +1,6 @@
 package michal.radecki.request_management;
 
+import michal.radecki.request_management.dto.RequestDto;
 import michal.radecki.request_management.entity.RequestEntity;
 import michal.radecki.request_management.exception.RequestCannotBeProcessedException;
 import michal.radecki.request_management.exception.RequestNotFoundException;
@@ -16,7 +17,12 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -317,5 +323,47 @@ public class RequestServiceTest {
         assertThat(exception.getMessage()).isEqualTo("Request with id " + id +
                 " cannot be updated because it is in " + state.name() + " state" +
                 ", not in CREATED or VERIFIED state");
+    }
+
+    @Test
+    void when_trying_to_get_requests_page_then_should_return_empty_page_with_requests() {
+        // given
+        String name = null;
+        RequestState state = null;
+        int pageNumber = 0, size = 10;
+        when(mockedRequestRepository.findAll((Pageable) any())).thenReturn(Page.empty());
+        // when
+        Page<RequestDto> requestsPage = requestService.getRequestsPage(pageNumber, size, name, state);
+        // then
+        assertThat(requestsPage.getTotalElements()).isEqualTo(0);
+        assertThat(requestsPage.getTotalPages()).isEqualTo(1);
+    }
+
+    @Test
+    void when_trying_to_get_requests_page_then_should_return_not_empty_page_with_requests() {
+        // given
+        String name = null;
+        RequestState state = null;
+        int pageNumber = 0, size = 10;
+        List<RequestEntity> requests = createRequests(7, RequestState.CREATED);
+        Page<RequestEntity> page = new PageImpl<>(requests);
+        when(mockedRequestRepository.findAll((Pageable) any())).thenReturn(page);
+        // when
+        Page<RequestDto> requestsPage = requestService.getRequestsPage(pageNumber, size, name, state);
+        // then
+        assertThat(requestsPage.getTotalElements()).isEqualTo(7);
+        assertThat(requestsPage.getTotalPages()).isEqualTo(1);
+    }
+
+    private List<RequestEntity> createRequests(int amount, RequestState state) {
+        List<RequestEntity> requestEntities = new ArrayList<>();
+        for (int i = 0; i < amount; i++) {
+            requestEntities.add(createRequest(i, state));
+        }
+        return requestEntities;
+    }
+
+    private RequestEntity createRequest(int i, RequestState state) {
+        return new RequestEntity("name_" + i, "body_" + i, state);
     }
 }

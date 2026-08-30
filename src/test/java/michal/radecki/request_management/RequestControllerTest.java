@@ -1,5 +1,6 @@
 package michal.radecki.request_management;
 
+import michal.radecki.request_management.dto.RequestDto;
 import michal.radecki.request_management.entity.RequestEntity;
 import michal.radecki.request_management.entity.RequestStateHistoryEntity;
 import michal.radecki.request_management.repository.RequestRepository;
@@ -8,7 +9,9 @@ import michal.radecki.request_management.request.CreateRequest;
 import michal.radecki.request_management.request.RequestWithReason;
 import michal.radecki.request_management.request.UpdateBodyRequest;
 import michal.radecki.request_management.response.CustomErrorResponse;
+import michal.radecki.request_management.response.PageResponse;
 import michal.radecki.request_management.response.RequestCreatedResponse;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -16,8 +19,10 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.BiPredicate;
@@ -25,6 +30,7 @@ import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 
@@ -43,6 +49,12 @@ public class RequestControllerTest {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @BeforeEach
+    void setup() {
+        requestRepository.deleteAll();
+        requestStateHistoryRepository.deleteAll();
+    }
 
     @Test
     void when_trying_to_create_request_then_should_return_request_id() throws Exception {
@@ -654,6 +666,141 @@ public class RequestControllerTest {
         RequestEntity deletedRequestEntity = deletedRequestEntityOpt.get();
         assertThat(deletedRequestEntity.getState()).isEqualTo(RequestState.DELETED);
         assertThat(deletedRequestEntity.getBody()).isEqualTo("requestBody");
+    }
+
+    @Test
+    void when_trying_to_get_first_requests_page_then_should_return_page_of_requests() throws Exception {
+        // given
+        List<Integer> requestIds = new ArrayList<>();
+        for (int i = 0; i < 12; i++) {
+            Integer id = createRequest("name_" + i, "body_" + i);
+            requestIds.add(id);
+        }
+        // when
+        MvcResult createResult = mockMvc.perform(get("/browse")
+                .contentType(MediaType.APPLICATION_JSON)
+        ).andReturn();
+        PageResponse<RequestDto> page = objectMapper.readValue(createResult.getResponse().getContentAsString(), new TypeReference<PageResponse<RequestDto>>(){});
+        // then
+        assertThat(page).isNotNull();
+        assertThat(page.totalPages()).isEqualTo(2);
+        assertThat(page.totalElements()).isEqualTo(12);
+        assertThat(page.size()).isEqualTo(10);
+        assertThat(page.content().size()).isEqualTo(10);
+        Optional<RequestDto> requestDtoOpt = page.content().stream().findFirst();
+        assertThat(requestDtoOpt).isPresent();
+        RequestDto requestDto = requestDtoOpt.get();
+        assertThat(requestDto.name()).isNotNull();
+        assertThat(requestDto.name()).startsWith("name_");
+        assertThat(requestDto.body()).isNotNull();
+        assertThat(requestDto.body()).startsWith("body_");
+    }
+
+    @Test
+    void when_trying_to_get_second_requests_page_then_should_return_page_of_requests() throws Exception {
+        // given
+        List<Integer> requestIds = new ArrayList<>();
+        for (int i = 0; i < 12; i++) {
+            Integer id = createRequest("name_" + i, "body_" + i);
+            requestIds.add(id);
+        }
+        // when
+        MvcResult createResult = mockMvc.perform(get("/browse?page=1")
+                .contentType(MediaType.APPLICATION_JSON)
+        ).andReturn();
+        PageResponse<RequestDto> page = objectMapper.readValue(createResult.getResponse().getContentAsString(), new TypeReference<PageResponse<RequestDto>>(){});
+        // then
+        assertThat(page).isNotNull();
+        assertThat(page.totalPages()).isEqualTo(2);
+        assertThat(page.totalElements()).isEqualTo(12);
+        assertThat(page.size()).isEqualTo(10);
+        assertThat(page.content().size()).isEqualTo(2);
+        Optional<RequestDto> requestDtoOpt = page.content().stream().findFirst();
+        assertThat(requestDtoOpt).isPresent();
+        RequestDto requestDto = requestDtoOpt.get();
+        assertThat(requestDto.name()).isNotNull();
+        assertThat(requestDto.name()).startsWith("name_");
+        assertThat(requestDto.body()).isNotNull();
+        assertThat(requestDto.body()).startsWith("body_");
+    }
+
+    @Test
+    void when_trying_to_get_requests_page_with_specific_name_then_should_return_filtered_page_of_requests() throws Exception {
+        // given
+        List<Integer> requestIds = new ArrayList<>();
+        for (int i = 0; i < 12; i++) {
+            Integer id = createRequest("name_" + i, "body_" + i);
+            requestIds.add(id);
+        }
+        // when
+        MvcResult createResult = mockMvc.perform(get("/browse?name=name_1")
+                .contentType(MediaType.APPLICATION_JSON)
+        ).andReturn();
+        PageResponse<RequestDto> page = objectMapper.readValue(createResult.getResponse().getContentAsString(), new TypeReference<PageResponse<RequestDto>>(){});
+        // then
+        assertThat(page).isNotNull();
+        assertThat(page.totalPages()).isEqualTo(1);
+        assertThat(page.totalElements()).isEqualTo(1);
+        assertThat(page.size()).isEqualTo(10);
+        assertThat(page.content().size()).isEqualTo(1);
+        Optional<RequestDto> requestDtoOpt = page.content().stream().findFirst();
+        assertThat(requestDtoOpt).isPresent();
+        RequestDto requestDto = requestDtoOpt.get();
+        assertThat(requestDto.name()).isNotNull();
+        assertThat(requestDto.name()).isEqualTo("name_1");
+        assertThat(requestDto.body()).isNotNull();
+        assertThat(requestDto.body()).isEqualTo("body_1");
+    }
+
+    @Test
+    void when_trying_to_get_requests_page_with_specific_state_then_should_return_filtered_page_of_requests() throws Exception {
+        // given
+        List<Integer> requestIds = new ArrayList<>();
+        for (int i = 0; i < 12; i++) {
+            Integer id = createRequest("name_" + i, "body_" + i);
+            requestIds.add(id);
+        }
+        int counter = 0;
+        for (Integer id : requestIds) {
+            if (counter % 3 == 0) {
+                verifyRequest(id);
+            }
+            counter++;
+        }
+        // when
+        MvcResult createResult = mockMvc.perform(get("/browse?state=VERIFIED")
+                .contentType(MediaType.APPLICATION_JSON)
+        ).andReturn();
+        PageResponse<RequestDto> page = objectMapper.readValue(createResult.getResponse().getContentAsString(), new TypeReference<PageResponse<RequestDto>>(){});
+        // then
+        assertThat(page).isNotNull();
+        assertThat(page.totalPages()).isEqualTo(1);
+        assertThat(page.totalElements()).isEqualTo(4);
+        assertThat(page.size()).isEqualTo(10);
+        assertThat(page.content().size()).isEqualTo(4);
+        Optional<RequestDto> requestDtoOpt = page.content().stream().findFirst();
+        assertThat(requestDtoOpt).isPresent();
+        RequestDto requestDto = requestDtoOpt.get();
+        assertThat(requestDto.name()).isNotNull();
+        assertThat(requestDto.name()).startsWith("name_");
+        assertThat(requestDto.body()).isNotNull();
+        assertThat(requestDto.body()).startsWith("body_");
+    }
+
+    private Integer createRequest(String name, String body) throws Exception {
+        CreateRequest createRequest = new CreateRequest(name, body);
+        MvcResult createResult = mockMvc.perform(post("/create")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(createRequest))
+        ).andReturn();
+        RequestCreatedResponse requestCreatedResponse = objectMapper.readValue(createResult.getResponse().getContentAsString(), RequestCreatedResponse.class);
+        return requestCreatedResponse.id();
+    }
+
+    private void verifyRequest(Integer id) throws Exception {
+        mockMvc.perform(post("/verify/" + id)
+                .contentType(MediaType.APPLICATION_JSON)
+        ).andReturn();
     }
 
     private final BiPredicate<RequestEntity, RequestStateHistoryEntity> match = (requestEntity, requestStateHistoryEntity) ->

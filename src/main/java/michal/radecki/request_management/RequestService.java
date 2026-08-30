@@ -1,16 +1,23 @@
 package michal.radecki.request_management;
 
+import jakarta.annotation.Nullable;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
+import michal.radecki.request_management.dto.RequestDto;
 import michal.radecki.request_management.entity.RequestEntity;
 import michal.radecki.request_management.entity.RequestStateHistoryEntity;
 import michal.radecki.request_management.exception.RequestCannotBeProcessedException;
 import michal.radecki.request_management.exception.RequestNotFoundException;
+import michal.radecki.request_management.mapper.RequestMapper;
 import michal.radecki.request_management.repository.RequestRepository;
 import michal.radecki.request_management.repository.RequestStateHistoryRepository;
 import michal.radecki.request_management.request.CreateRequest;
 import michal.radecki.request_management.request.UpdateBodyRequest;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
@@ -34,14 +41,15 @@ public class RequestService {
     }
 
     Integer createRequest(@Valid CreateRequest request) {
-        RequestEntity entity = new RequestEntity(request.name(), request.body(), RequestState.CREATED);
+        RequestEntity entity = RequestMapper.toEntity(request);
         entity = requestRepository.save(entity);
         requestStateHistoryRepository.save(new RequestStateHistoryEntity(entity));
         return entity.getId();
     }
 
     @Transactional
-    void deleteRequest(Integer requestId, String reason) {
+    void deleteRequest(Integer requestId,
+                       String reason) {
         Optional<RequestEntity> requestEntityOpt = requestRepository.findById(requestId);
         if (requestEntityOpt.isEmpty()) {
            throw new RequestNotFoundException(requestId);
@@ -93,7 +101,8 @@ public class RequestService {
     }
 
     @Transactional
-    void rejectRequest(Integer requestId, String reason) {
+    void rejectRequest(Integer requestId,
+                       String reason) {
         Optional<RequestEntity> requestEntityOpt = requestRepository.findById(requestId);
         if (requestEntityOpt.isEmpty()) {
             throw new RequestNotFoundException(requestId);
@@ -130,7 +139,8 @@ public class RequestService {
     }
 
     @Transactional
-    void updateBody(Integer requestId, @Valid UpdateBodyRequest request) {
+    void updateBody(Integer requestId,
+                    @Valid UpdateBodyRequest request) {
         Optional<RequestEntity> requestEntityOpt = requestRepository.findById(requestId);
         if (requestEntityOpt.isEmpty()) {
             throw new RequestNotFoundException(requestId);
@@ -144,5 +154,24 @@ public class RequestService {
             requestEntity.setBody(request.body());
             requestStateHistoryRepository.save(new RequestStateHistoryEntity(requestEntity));
         }
+    }
+
+    Page<RequestDto> getRequestsPage(int pageNumber,
+                                     int size,
+                                     @Nullable String name,
+                                     @Nullable RequestState state) {
+        Pageable page = PageRequest.of(pageNumber, size, Sort.by("id").ascending());
+        Page<RequestEntity> result;
+        if (name != null) {
+            if (state != null) {
+                result = requestRepository.findByNameAndState(name, state, page);
+            } else {
+                result = requestRepository.findByName(name, page);
+            }
+        } else if (state != null) {
+            result = requestRepository.findByState(state, page);
+        } else result = requestRepository.findAll(page);
+        if (result == null) return null;
+        return result.map(RequestMapper::toDto);
     }
 }
