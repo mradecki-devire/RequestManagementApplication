@@ -4,11 +4,13 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import michal.radecki.request_management.request.CreateRequest;
 import michal.radecki.request_management.request.RequestWithReason;
+import michal.radecki.request_management.request.UpdateBodyRequest;
 import michal.radecki.request_management.response.RequestCreatedResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
@@ -53,5 +55,11 @@ public class RequestController {
     @ResponseStatus(HttpStatus.OK)
     public void publishRequest(@PathVariable Integer id) {
         requestService.publishRequest(id);
+    }
+
+    @PutMapping("update/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    public void updateBody(@PathVariable Integer id, @RequestBody @Valid UpdateBodyRequest request) {
+        requestService.updateBody(id, request);
     }
 }

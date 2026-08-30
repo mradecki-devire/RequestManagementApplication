@@ -3,6 +3,7 @@ package michal.radecki.request_management;
 import michal.radecki.request_management.exception.RequestCannotBeProcessedException;
 import michal.radecki.request_management.exception.RequestNotFoundException;
 import michal.radecki.request_management.request.CreateRequest;
+import michal.radecki.request_management.request.UpdateBodyRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -270,5 +271,42 @@ public class RequestServiceTest {
         assertThat(exception.getMessage()).isEqualTo("Request with id " + id +
                 " cannot be published because it is in " + state.name() + " state" +
                 ", not in ACCEPTED state");
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            "CREATED",
+            "VERIFIED"
+    })
+    void when_trying_to_update_body_in_request_with_created_or_verified_state_then_should_set_body() {
+        //given
+        Integer id = 127345;
+        String newBody = "new body";
+        RequestEntity requestEntity = new RequestEntity("requestName", "requestBody", RequestState.CREATED);
+        requestEntity.setId(id);
+        when(mockedRequestRepository.findById(id)).thenReturn(Optional.of(requestEntity));
+        //when //then
+        assertDoesNotThrow(() -> requestService.updateBody(id, new UpdateBodyRequest(newBody)));
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            "PUBLISHED",
+            "DELETED",
+            "REJECTED",
+            "ACCEPTED"
+    })
+    void when_trying_to_update_body_in_request_with_state_different_than_created_of_verified_then_should_throw_exception(RequestState state) {
+        //given
+        Integer id = 127345;
+        RequestEntity requestEntity = new RequestEntity("requestName", "requestBody", state);
+        requestEntity.setId(id);
+        when(mockedRequestRepository.findById(id)).thenReturn(Optional.of(requestEntity));
+        //when //then
+        RequestCannotBeProcessedException exception = assertThrows(RequestCannotBeProcessedException.class,
+                () -> requestService.updateBody(id, new UpdateBodyRequest("newBody")));
+        assertThat(exception.getMessage()).isEqualTo("Request with id " + id +
+                " cannot be updated because it is in " + state.name() + " state" +
+                ", not in CREATED or VERIFIED state");
     }
 }

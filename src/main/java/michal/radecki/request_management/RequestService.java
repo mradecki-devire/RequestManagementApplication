@@ -5,6 +5,7 @@ import jakarta.validation.Valid;
 import michal.radecki.request_management.exception.RequestCannotBeProcessedException;
 import michal.radecki.request_management.exception.RequestNotFoundException;
 import michal.radecki.request_management.request.CreateRequest;
+import michal.radecki.request_management.request.UpdateBodyRequest;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
@@ -112,6 +113,22 @@ public class RequestService {
             requestEntity.setState(RequestState.PUBLISHED);
             String publicationIdentifier = publicationIdentifierGenerator.generate();
             requestEntity.setPublicationIdentifier(publicationIdentifier);
+        }
+    }
+
+    @Transactional
+    void updateBody(Integer requestId, @Valid UpdateBodyRequest request) {
+        Optional<RequestEntity> requestEntityOpt = requestRepository.findById(requestId);
+        if (requestEntityOpt.isEmpty()) {
+            throw new RequestNotFoundException(requestId);
+        } else {
+            RequestEntity requestEntity = requestEntityOpt.get();
+            if (!Set.of(RequestState.CREATED, RequestState.VERIFIED).contains(requestEntity.getState())) {
+                throw new RequestCannotBeProcessedException("Request with id " + requestId +
+                        " cannot be updated because it is in " + requestEntity.getState() + " state" +
+                        ", not in CREATED or VERIFIED state");
+            }
+            requestEntity.setBody(request.body());
         }
     }
 }

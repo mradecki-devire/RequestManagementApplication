@@ -2,6 +2,7 @@ package michal.radecki.request_management;
 
 import michal.radecki.request_management.request.CreateRequest;
 import michal.radecki.request_management.request.RequestWithReason;
+import michal.radecki.request_management.request.UpdateBodyRequest;
 import michal.radecki.request_management.response.CustomErrorResponse;
 import michal.radecki.request_management.response.RequestCreatedResponse;
 import org.junit.jupiter.api.Test;
@@ -18,6 +19,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -420,5 +422,116 @@ public class RequestControllerTest {
         assertThat(errorResponse.message()).isEqualTo("Request with id " + requestId +
                 " cannot be published because it is in CREATED state" +
                 ", not in ACCEPTED state");
+    }
+
+    @Test
+    void when_trying_to_update_body_in_request_with_created_or_verified_state_then_should_update_body() throws Exception {
+        // given
+        CreateRequest createRequest = new CreateRequest("requestName", "requestBody");
+        MvcResult createResult = mockMvc.perform(post("/create")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(createRequest))
+        ).andReturn();
+        RequestCreatedResponse requestCreatedResponse = objectMapper.readValue(createResult.getResponse().getContentAsString(), RequestCreatedResponse.class);
+        Integer requestId = requestCreatedResponse.id();
+        // when
+        MvcResult verifyResult = mockMvc.perform(post("/verify/" + requestId)
+                .contentType(MediaType.APPLICATION_JSON)
+        ).andReturn();
+        // then
+        assertThat(verifyResult.getResponse().getStatus()).isEqualTo(200);
+        Optional<RequestEntity> requestEntityOpt = requestRepository.findById(requestId);
+        assertThat(requestEntityOpt).isPresent();
+        RequestEntity requestEntity = requestEntityOpt.get();
+        assertThat(requestEntity.getState()).isEqualTo(RequestState.VERIFIED);
+        // when
+        MvcResult updatedResult = mockMvc.perform(put("/update/" + requestId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(new UpdateBodyRequest("updatedRequestBody")))
+        ).andReturn();
+        // then
+        assertThat(updatedResult.getResponse().getStatus()).isEqualTo(200);
+        Optional<RequestEntity> updatedRequestEntityOpt = requestRepository.findById(requestId);
+        assertThat(updatedRequestEntityOpt).isPresent();
+        RequestEntity updatedRequestEntity = updatedRequestEntityOpt.get();
+        assertThat(updatedRequestEntity.getState()).isEqualTo(RequestState.VERIFIED);
+        assertThat(updatedRequestEntity.getBody()).isEqualTo("updatedRequestBody");
+    }
+
+    @Test
+    void when_trying_to_update_body_in_request_using_empty_body_then_should_throw_exception() throws Exception {
+        // given
+        CreateRequest createRequest = new CreateRequest("requestName", "requestBody");
+        MvcResult createResult = mockMvc.perform(post("/create")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(createRequest))
+        ).andReturn();
+        RequestCreatedResponse requestCreatedResponse = objectMapper.readValue(createResult.getResponse().getContentAsString(), RequestCreatedResponse.class);
+        Integer requestId = requestCreatedResponse.id();
+        // when
+        MvcResult verifyResult = mockMvc.perform(post("/verify/" + requestId)
+                .contentType(MediaType.APPLICATION_JSON)
+        ).andReturn();
+        // then
+        assertThat(verifyResult.getResponse().getStatus()).isEqualTo(200);
+        Optional<RequestEntity> requestEntityOpt = requestRepository.findById(requestId);
+        assertThat(requestEntityOpt).isPresent();
+        RequestEntity requestEntity = requestEntityOpt.get();
+        assertThat(requestEntity.getState()).isEqualTo(RequestState.VERIFIED);
+        // when
+        MvcResult updatedResult = mockMvc.perform(put("/update/" + requestId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(new UpdateBodyRequest("")))
+        ).andReturn();
+        // then
+        assertThat(updatedResult.getResponse().getStatus()).isEqualTo(400);
+        assertThat(updatedResult.getResponse().getErrorMessage()).isEqualTo("Invalid request content.");
+        // when
+        MvcResult updatedResult2 = mockMvc.perform(put("/update/" + requestId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(new UpdateBodyRequest(null)))
+        ).andReturn();
+        // then
+        assertThat(updatedResult2.getResponse().getStatus()).isEqualTo(400);
+        assertThat(updatedResult2.getResponse().getErrorMessage()).isEqualTo("Invalid request content.");
+    }
+
+    @Test
+    void when_trying_to_update_body_in_request_with_different_state_than_created_or_verified_then_should_not_update_body_and_throw_exception() throws Exception {
+        // given
+        CreateRequest createRequest = new CreateRequest("requestName", "requestBody");
+        MvcResult createResult = mockMvc.perform(post("/create")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(createRequest))
+        ).andReturn();
+        RequestCreatedResponse requestCreatedResponse = objectMapper.readValue(createResult.getResponse().getContentAsString(), RequestCreatedResponse.class);
+        Integer requestId = requestCreatedResponse.id();
+        // when
+        MvcResult verifyResult = mockMvc.perform(delete("/" + requestId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(new RequestWithReason("request is no longer needed")))
+        ).andReturn();
+        // then
+        assertThat(verifyResult.getResponse().getStatus()).isEqualTo(200);
+        Optional<RequestEntity> requestEntityOpt = requestRepository.findById(requestId);
+        assertThat(requestEntityOpt).isPresent();
+        RequestEntity requestEntity = requestEntityOpt.get();
+        assertThat(requestEntity.getState()).isEqualTo(RequestState.DELETED);
+        // when
+        MvcResult updatedResult = mockMvc.perform(put("/update/" + requestId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(new UpdateBodyRequest("updatedRequestBody")))
+        ).andReturn();
+        // then
+        assertThat(updatedResult.getResponse().getStatus()).isEqualTo(400);
+        CustomErrorResponse errorResponse = objectMapper.readValue(updatedResult.getResponse().getContentAsString(), CustomErrorResponse.class);
+        assertThat(errorResponse.message()).isEqualTo("Request with id " + requestId +
+                " cannot be updated because it is in DELETED state" +
+                ", not in CREATED or VERIFIED state");
+        Optional<RequestEntity> deletedRequestEntityOpt = requestRepository.findById(requestId);
+        assertThat(deletedRequestEntityOpt).isPresent();
+        RequestEntity deletedRequestEntity = deletedRequestEntityOpt.get();
+        assertThat(deletedRequestEntity.getState()).isEqualTo(RequestState.DELETED);
+        assertThat(deletedRequestEntity.getBody()).isEqualTo("requestBody");
     }
 }
