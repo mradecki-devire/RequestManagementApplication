@@ -579,16 +579,16 @@ Run all tests with:
 
 ## Possible Improvements
 
-Given more development time, possible improvements include:
-
-- Moving state transition rules into a dedicated domain model
-- Replacing repeated lifecycle validation with a centralized state transition mechanism
-- Renaming `RequestStateHistoryEntity` to `RequestHistoryEntity` to better reflect that body modifications are also audited
 - Adding database migrations using Flyway or Liquibase
-- Adding integration tests against a production-grade database using Testcontainers
+- Observability - adding integration tests against a production-grade database using Testcontainers
 - Adding structured application logging and observability
 - Adding configurable pagination limits
 - Adding authentication and authorization if required by the API
+- Separating the domain model from the JPA persistence model if the application grows in complexity, fe. RequestEntity, RequestDto and Request
+- Database-level indexing for browsing queries
+- Improved API error responses
+- API versioning — fe. /api/v1/requests
+- More Audit metadata — fe. changedBy.
 
 ## Author
 
