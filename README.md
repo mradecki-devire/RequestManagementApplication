@@ -128,7 +128,6 @@ The main responsibilities are:
 ### Prerequisites
 
 - JDK 25
-- Maven
 
 Clone the repository:
 

@@ -4,3 +4,4 @@
 # Environment-dependent path to Maven home directory
 /mavenHomeManager.xml
 /target/
+*.iml
