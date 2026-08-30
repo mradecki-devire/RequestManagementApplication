@@ -3,6 +3,7 @@ package michal.radecki.request_management.service;
 import jakarta.annotation.Nullable;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
+import michal.radecki.request_management.domain.RequestLifecycle;
 import michal.radecki.request_management.domain.RequestState;
 import michal.radecki.request_management.dto.RequestDto;
 import michal.radecki.request_management.dto.RequestStateHistoryDto;
@@ -55,10 +56,10 @@ public class RequestService {
 
     @Transactional
     public void deleteRequest(Integer requestId,
-                       String reason) {
+                              String reason) {
         RequestEntity requestEntity = requestRepository.findById(requestId)
                 .orElseThrow(() -> new RequestNotFoundException(requestId));
-        if (requestEntity.getState() != RequestState.CREATED) {
+        if (RequestLifecycle.IS_TRANSITION_ALLOWED.negate().test(requestEntity.getState(), RequestState.DELETED)) {
             throw new RequestCannotBeProcessedException("Request with requestId " + requestId +
                     " cannot be deleted because it is in " + requestEntity.getState() + " state" +
                     ", not in CREATED state");
@@ -72,7 +73,7 @@ public class RequestService {
     public void verifyRequest(Integer requestId) {
         RequestEntity requestEntity = requestRepository.findById(requestId)
                 .orElseThrow(() -> new RequestNotFoundException(requestId));
-        if (requestEntity.getState() != RequestState.CREATED) {
+        if (RequestLifecycle.IS_TRANSITION_ALLOWED.negate().test(requestEntity.getState(), RequestState.VERIFIED)) {
             throw new RequestCannotBeProcessedException("Request with requestId " + requestId +
                     " cannot be verified because it is in " + requestEntity.getState() + " state" +
                     ", not in CREATED state");
@@ -85,7 +86,7 @@ public class RequestService {
     public void acceptRequest(Integer requestId) {
         RequestEntity requestEntity = requestRepository.findById(requestId)
                 .orElseThrow(() -> new RequestNotFoundException(requestId));
-        if (requestEntity.getState() != RequestState.VERIFIED) {
+        if (RequestLifecycle.IS_TRANSITION_ALLOWED.negate().test(requestEntity.getState(), RequestState.ACCEPTED)) {
             throw new RequestCannotBeProcessedException("Request with requestId " + requestId +
                     " cannot be accepted because it is in " + requestEntity.getState() + " state" +
                     ", not in VERIFIED state");
@@ -96,10 +97,10 @@ public class RequestService {
 
     @Transactional
     public void rejectRequest(Integer requestId,
-                       String reason) {
+                              String reason) {
         RequestEntity requestEntity = requestRepository.findById(requestId)
                 .orElseThrow(() -> new RequestNotFoundException(requestId));
-        if (!Set.of(RequestState.VERIFIED, RequestState.ACCEPTED).contains(requestEntity.getState())) {
+        if (RequestLifecycle.IS_TRANSITION_ALLOWED.negate().test(requestEntity.getState(), RequestState.REJECTED)) {
             throw new RequestCannotBeProcessedException("Request with requestId " + requestId +
                     " cannot be rejected because it is in " + requestEntity.getState() + " state" +
                     ", not in VERIFIED or ACCEPTED state");
@@ -113,7 +114,7 @@ public class RequestService {
     public RequestPublishResponse publishRequest(Integer requestId) {
         RequestEntity requestEntity = requestRepository.findById(requestId)
                 .orElseThrow(() -> new RequestNotFoundException(requestId));
-        if (requestEntity.getState() != RequestState.ACCEPTED) {
+        if (RequestLifecycle.IS_TRANSITION_ALLOWED.negate().test(requestEntity.getState(), RequestState.PUBLISHED)) {
             throw new RequestCannotBeProcessedException("Request with requestId " + requestId +
                     " cannot be published because it is in " + requestEntity.getState() + " state" +
                     ", not in ACCEPTED state");
@@ -127,7 +128,7 @@ public class RequestService {
 
     @Transactional
     public void updateBody(Integer requestId,
-                    @Valid UpdateBodyRequest request) {
+                           @Valid UpdateBodyRequest request) {
         RequestEntity requestEntity = requestRepository.findById(requestId)
                 .orElseThrow(() -> new RequestNotFoundException(requestId));
         if (!Set.of(RequestState.CREATED, RequestState.VERIFIED).contains(requestEntity.getState())) {
@@ -140,9 +141,9 @@ public class RequestService {
     }
 
     public Page<RequestDto> getRequestsPage(int pageNumber,
-                                     int size,
-                                     @Nullable String name,
-                                     @Nullable RequestState state) {
+                                            int size,
+                                            @Nullable String name,
+                                            @Nullable RequestState state) {
         Pageable page = PageRequest.of(pageNumber, size, Sort.by("requestId").ascending());
         Page<RequestEntity> result;
         if (name != null) {
