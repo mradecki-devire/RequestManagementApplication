@@ -74,10 +74,10 @@ public class RequestControllerIntegrationTest {
         assertThat(result.getResponse().getStatus()).isEqualTo(201);
         RequestCreatedResponse requestCreatedResponse = objectMapper.readValue(result.getResponse().getContentAsString(), RequestCreatedResponse.class);
         assertThat(requestCreatedResponse).isNotNull();
-        Optional<RequestEntity> requestEntityOpt = requestRepository.findById(requestCreatedResponse.id());
+        Optional<RequestEntity> requestEntityOpt = requestRepository.findById(requestCreatedResponse.requestId());
         assertThat(requestEntityOpt).isPresent();
         RequestEntity requestEntity = requestEntityOpt.get();
-        assertThat(requestEntity.getRequestId()).isEqualTo(requestCreatedResponse.id());
+        assertThat(requestEntity.getRequestId()).isEqualTo(requestCreatedResponse.requestId());
         assertThat(requestEntity.getName()).isEqualTo("requestName");
         assertThat(requestEntity.getBody()).isEqualTo("requestBody");
         assertThat(requestEntity.getState()).isEqualTo(RequestState.CREATED);
@@ -85,7 +85,7 @@ public class RequestControllerIntegrationTest {
         assertThat(requestEntity.getPublicationIdentifier()).isNull();
 
         List<RequestStateHistoryEntity> requestStateHistoryEntityList = requestStateHistoryRepository.findAllByRequestId(
-                requestCreatedResponse.id(), sortByChangedAt());
+                requestCreatedResponse.requestId(), sortByChangedAt());
         assertThat(requestStateHistoryEntityList).isNotNull();
         assertThat(requestStateHistoryEntityList).hasSize(1);
         assert (match.test(requestEntity, requestStateHistoryEntityList.get(0)));
@@ -156,7 +156,7 @@ public class RequestControllerIntegrationTest {
                 .content(objectMapper.writeValueAsString(createRequest))
         ).andReturn();
         RequestCreatedResponse requestCreatedResponse = objectMapper.readValue(createResult.getResponse().getContentAsString(), RequestCreatedResponse.class);
-        Integer requestId = requestCreatedResponse.id();
+        Integer requestId = requestCreatedResponse.requestId();
         String reason = "request is no longer needed";
         RequestWithReason requestWithReason = new RequestWithReason(reason);
         // when
@@ -173,7 +173,7 @@ public class RequestControllerIntegrationTest {
         assertThat(requestEntity.getReason()).isEqualTo(reason);
 
         List<RequestStateHistoryEntity> requestStateHistoryEntityList = requestStateHistoryRepository.findAllByRequestId(
-                requestCreatedResponse.id(), sortByChangedAt());
+                requestCreatedResponse.requestId(), sortByChangedAt());
         assertThat(requestStateHistoryEntityList).isNotNull();
         assertThat(requestStateHistoryEntityList).hasSize(2);
         Optional<RequestStateHistoryEntity> requestStateHistoryEntityCreatedOpt = requestStateHistoryEntityList.stream()
@@ -196,7 +196,7 @@ public class RequestControllerIntegrationTest {
                 .content(objectMapper.writeValueAsString(createRequest))
         ).andReturn();
         RequestCreatedResponse requestCreatedResponse = objectMapper.readValue(createResult.getResponse().getContentAsString(), RequestCreatedResponse.class);
-        Integer requestId = requestCreatedResponse.id();
+        Integer requestId = requestCreatedResponse.requestId();
         String reason = "request is no longer needed";
         RequestWithReason requestWithReason = new RequestWithReason(reason);
         // when
@@ -232,7 +232,7 @@ public class RequestControllerIntegrationTest {
                 .content(objectMapper.writeValueAsString(createRequest))
         ).andReturn();
         RequestCreatedResponse requestCreatedResponse = objectMapper.readValue(createResult.getResponse().getContentAsString(), RequestCreatedResponse.class);
-        Integer requestId = requestCreatedResponse.id();
+        Integer requestId = requestCreatedResponse.requestId();
         // when
         MvcResult verifyResult = mockMvc.perform(post("/requests/" + requestId + "/verify")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -245,7 +245,7 @@ public class RequestControllerIntegrationTest {
         assertThat(requestEntity.getState()).isEqualTo(RequestState.VERIFIED);
 
         List<RequestStateHistoryEntity> requestStateHistoryEntityList = requestStateHistoryRepository.findAllByRequestId(
-                requestCreatedResponse.id(), sortByChangedAt());
+                requestCreatedResponse.requestId(), sortByChangedAt());
         assertThat(requestStateHistoryEntityList).isNotNull();
         assertThat(requestStateHistoryEntityList).hasSize(2);
         Optional<RequestStateHistoryEntity> requestStateHistoryEntityCreatedOpt = requestStateHistoryEntityList.stream()
@@ -268,7 +268,7 @@ public class RequestControllerIntegrationTest {
                 .content(objectMapper.writeValueAsString(createRequest))
         ).andReturn();
         RequestCreatedResponse requestCreatedResponse = objectMapper.readValue(createResult.getResponse().getContentAsString(), RequestCreatedResponse.class);
-        Integer requestId = requestCreatedResponse.id();
+        Integer requestId = requestCreatedResponse.requestId();
         String reason = "request is no longer needed";
         RequestWithReason requestWithReason = new RequestWithReason(reason);
         // when
@@ -304,7 +304,7 @@ public class RequestControllerIntegrationTest {
                 .content(objectMapper.writeValueAsString(createRequest))
         ).andReturn();
         RequestCreatedResponse requestCreatedResponse = objectMapper.readValue(createResult.getResponse().getContentAsString(), RequestCreatedResponse.class);
-        Integer requestId = requestCreatedResponse.id();
+        Integer requestId = requestCreatedResponse.requestId();
         // when
         MvcResult verifyResult = mockMvc.perform(post("/requests/" + requestId + "/verify")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -327,7 +327,7 @@ public class RequestControllerIntegrationTest {
         assertThat(acceptedRequestEntity.getState()).isEqualTo(RequestState.ACCEPTED);
 
         List<RequestStateHistoryEntity> requestStateHistoryEntityList = requestStateHistoryRepository.findAllByRequestId(
-                requestCreatedResponse.id(), sortByChangedAt());
+                requestCreatedResponse.requestId(), sortByChangedAt());
         assertThat(requestStateHistoryEntityList).isNotNull();
         assertThat(requestStateHistoryEntityList).hasSize(3);
         Optional<RequestStateHistoryEntity> requestStateHistoryEntityCreatedOpt = requestStateHistoryEntityList.stream()
@@ -354,7 +354,7 @@ public class RequestControllerIntegrationTest {
                 .content(objectMapper.writeValueAsString(createRequest))
         ).andReturn();
         RequestCreatedResponse requestCreatedResponse = objectMapper.readValue(createResult.getResponse().getContentAsString(), RequestCreatedResponse.class);
-        Integer requestId = requestCreatedResponse.id();
+        Integer requestId = requestCreatedResponse.requestId();
         // when
         MvcResult acceptedResult = mockMvc.perform(post("/requests/" + requestId + "/accept")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -380,7 +380,7 @@ public class RequestControllerIntegrationTest {
                 .content(objectMapper.writeValueAsString(createRequest))
         ).andReturn();
         RequestCreatedResponse requestCreatedResponse = objectMapper.readValue(createResult.getResponse().getContentAsString(), RequestCreatedResponse.class);
-        Integer requestId = requestCreatedResponse.id();
+        Integer requestId = requestCreatedResponse.requestId();
         // when
         MvcResult deleteResult = mockMvc.perform(post("/requests/" + requestId + "/verify")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -405,7 +405,7 @@ public class RequestControllerIntegrationTest {
         assertThat(rejectedRequestEntity.getReason()).isEqualTo("request is no longer needed");
 
         List<RequestStateHistoryEntity> requestStateHistoryEntityList = requestStateHistoryRepository.findAllByRequestId(
-                requestCreatedResponse.id(), sortByChangedAt());
+                requestCreatedResponse.requestId(), sortByChangedAt());
         assertThat(requestStateHistoryEntityList).isNotNull();
         assertThat(requestStateHistoryEntityList).hasSize(3);
         Optional<RequestStateHistoryEntity> requestStateHistoryEntityCreatedOpt = requestStateHistoryEntityList.stream()
@@ -432,7 +432,7 @@ public class RequestControllerIntegrationTest {
                 .content(objectMapper.writeValueAsString(createRequest))
         ).andReturn();
         RequestCreatedResponse requestCreatedResponse = objectMapper.readValue(createResult.getResponse().getContentAsString(), RequestCreatedResponse.class);
-        Integer requestId = requestCreatedResponse.id();
+        Integer requestId = requestCreatedResponse.requestId();
         // when
         MvcResult rejectedResult = mockMvc.perform(post("/requests/" + requestId + "/reject")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -459,7 +459,7 @@ public class RequestControllerIntegrationTest {
                 .content(objectMapper.writeValueAsString(createRequest))
         ).andReturn();
         RequestCreatedResponse requestCreatedResponse = objectMapper.readValue(createResult.getResponse().getContentAsString(), RequestCreatedResponse.class);
-        Integer requestId = requestCreatedResponse.id();
+        Integer requestId = requestCreatedResponse.requestId();
         // when
         MvcResult verifyResult = mockMvc.perform(post("/requests/" + requestId + "/verify")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -501,7 +501,7 @@ public class RequestControllerIntegrationTest {
         assertThat(publishedRequestEntity.getPublicationIdentifier().chars()).allMatch(Character::isDigit);
 
         List<RequestStateHistoryEntity> requestStateHistoryEntityList = requestStateHistoryRepository.findAllByRequestId(
-                requestCreatedResponse.id(), sortByChangedAt());
+                requestCreatedResponse.requestId(), sortByChangedAt());
         assertThat(requestStateHistoryEntityList).isNotNull();
         assertThat(requestStateHistoryEntityList).hasSize(4);
         Optional<RequestStateHistoryEntity> requestStateHistoryEntityCreatedOpt = requestStateHistoryEntityList.stream()
@@ -532,7 +532,7 @@ public class RequestControllerIntegrationTest {
                 .content(objectMapper.writeValueAsString(createRequest))
         ).andReturn();
         RequestCreatedResponse requestCreatedResponse = objectMapper.readValue(createResult.getResponse().getContentAsString(), RequestCreatedResponse.class);
-        Integer requestId = requestCreatedResponse.id();
+        Integer requestId = requestCreatedResponse.requestId();
         // when
         MvcResult publishedResult = mockMvc.perform(post("/requests/" + requestId + "/publish")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -558,7 +558,7 @@ public class RequestControllerIntegrationTest {
                 .content(objectMapper.writeValueAsString(createRequest))
         ).andReturn();
         RequestCreatedResponse requestCreatedResponse = objectMapper.readValue(createResult.getResponse().getContentAsString(), RequestCreatedResponse.class);
-        Integer requestId = requestCreatedResponse.id();
+        Integer requestId = requestCreatedResponse.requestId();
         // when
         MvcResult verifyResult = mockMvc.perform(post("/requests/" + requestId + "/verify")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -583,7 +583,7 @@ public class RequestControllerIntegrationTest {
         assertThat(updatedRequestEntity.getBody()).isEqualTo("updatedRequestBody");
 
         List<RequestStateHistoryEntity> requestStateHistoryEntityList = requestStateHistoryRepository.findAllByRequestId(
-                requestCreatedResponse.id(), sortByChangedAt());
+                requestCreatedResponse.requestId(), sortByChangedAt());
         assertThat(requestStateHistoryEntityList).isNotNull();
         assertThat(requestStateHistoryEntityList).hasSize(3);
         Optional<RequestStateHistoryEntity> requestStateHistoryEntityCreatedOpt = requestStateHistoryEntityList.stream()
@@ -611,7 +611,7 @@ public class RequestControllerIntegrationTest {
                 .content(objectMapper.writeValueAsString(createRequest))
         ).andReturn();
         RequestCreatedResponse requestCreatedResponse = objectMapper.readValue(createResult.getResponse().getContentAsString(), RequestCreatedResponse.class);
-        Integer requestId = requestCreatedResponse.id();
+        Integer requestId = requestCreatedResponse.requestId();
         // when
         MvcResult verifyResult = mockMvc.perform(post("/requests/" + requestId + "/verify")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -649,7 +649,7 @@ public class RequestControllerIntegrationTest {
                 .content(objectMapper.writeValueAsString(createRequest))
         ).andReturn();
         RequestCreatedResponse requestCreatedResponse = objectMapper.readValue(createResult.getResponse().getContentAsString(), RequestCreatedResponse.class);
-        Integer requestId = requestCreatedResponse.id();
+        Integer requestId = requestCreatedResponse.requestId();
         // when
         MvcResult verifyResult = mockMvc.perform(delete("/requests/" + requestId)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -811,7 +811,7 @@ public class RequestControllerIntegrationTest {
                 .content(objectMapper.writeValueAsString(createRequest))
         ).andReturn();
         RequestCreatedResponse requestCreatedResponse = objectMapper.readValue(createResult.getResponse().getContentAsString(), RequestCreatedResponse.class);
-        Integer requestId = requestCreatedResponse.id();
+        Integer requestId = requestCreatedResponse.requestId();
         // when
         MvcResult verifyResult = mockMvc.perform(post("/requests/" + requestId + "/verify")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -895,7 +895,7 @@ public class RequestControllerIntegrationTest {
                 .content(objectMapper.writeValueAsString(createRequest))
         ).andReturn();
         RequestCreatedResponse requestCreatedResponse = objectMapper.readValue(createResult.getResponse().getContentAsString(), RequestCreatedResponse.class);
-        return requestCreatedResponse.id();
+        return requestCreatedResponse.requestId();
     }
 
     private void verifyRequest(Integer id) throws Exception {

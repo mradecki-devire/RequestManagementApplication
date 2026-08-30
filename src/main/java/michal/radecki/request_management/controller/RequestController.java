@@ -46,7 +46,7 @@ public class RequestController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public RequestCreatedResponse createRequest(@RequestBody @Valid CreateRequest request) {
-        return new RequestCreatedResponse(requestService.createRequest(request));
+        return requestService.createRequest(request);
     }
 
     @Operation(

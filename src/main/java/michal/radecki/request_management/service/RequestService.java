@@ -17,6 +17,7 @@ import michal.radecki.request_management.repository.RequestRepository;
 import michal.radecki.request_management.repository.RequestStateHistoryRepository;
 import michal.radecki.request_management.request.CreateRequest;
 import michal.radecki.request_management.request.UpdateBodyRequest;
+import michal.radecki.request_management.response.RequestCreatedResponse;
 import michal.radecki.request_management.response.RequestPublishResponse;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
@@ -47,11 +48,11 @@ public class RequestService {
     }
 
     @Transactional
-    public Integer createRequest(@Valid CreateRequest request) {
+    public RequestCreatedResponse createRequest(@Valid CreateRequest request) {
         RequestEntity entity = RequestMapper.toEntity(request);
         entity = requestRepository.save(entity);
         requestStateHistoryRepository.save(new RequestStateHistoryEntity(entity));
-        return entity.getRequestId();
+        return new RequestCreatedResponse(entity.getRequestId());
     }
 
     @Transactional

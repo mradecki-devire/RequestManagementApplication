@@ -12,6 +12,7 @@ import michal.radecki.request_management.repository.RequestRepository;
 import michal.radecki.request_management.repository.RequestStateHistoryRepository;
 import michal.radecki.request_management.request.CreateRequest;
 import michal.radecki.request_management.request.UpdateBodyRequest;
+import michal.radecki.request_management.response.RequestCreatedResponse;
 import michal.radecki.request_management.response.RequestPublishResponse;
 import michal.radecki.request_management.service.RequestService;
 import org.junit.jupiter.api.BeforeEach;
@@ -64,10 +65,11 @@ public class RequestServiceTest {
         requestEntity.setRequestId(REQUEST_ID);
         when(mockedRequestRepository.save(any())).thenReturn(requestEntity);
         //when
-        Integer createdRequestId = requestService.createRequest(createRequest);
+        RequestCreatedResponse createdResponse = requestService.createRequest(createRequest);
         //then
-        assertThat(createdRequestId).isNotNull();
-        assertThat(createdRequestId).isEqualTo(REQUEST_ID);
+        assertThat(createdResponse).isNotNull();
+        assertThat(createdResponse.requestId()).isNotNull();
+        assertThat(createdResponse.requestId()).isEqualTo(REQUEST_ID);
     }
 
     @Test
