@@ -168,26 +168,28 @@ Swagger UI can also be used to execute and test the API endpoints.
 
 ## API Endpoints
 
-| Method | Endpoint | Description |
-|---|---|---|
-| `POST` | `/create` | Creates a new request |
-| `DELETE` | `/{requestId}` | Deletes a request |
-| `POST` | `/verify/{requestId}` | Verifies a request |
-| `POST` | `/accept/{requestId}` | Accepts a request |
-| `POST` | `/reject/{requestId}` | Rejects a request |
-| `POST` | `/publish/{requestId}` | Publishes a request |
-| `PUT` | `/update/{requestId}` | Updates the request body |
-| `GET` | `/browse` | Returns a paginated and optionally filtered list of requests |
-| `GET` | `/auditlog/{requestId}` | Returns the audit history of a request |
+All request-related endpoints are exposed under the `/requests` base path.
 
-Detailed request and response schemas are available in Swagger UI.
+| Method | Endpoint | Description                                                                   |
+|---|---|-------------------------------------------------------------------------------|
+| `POST` | `/requests/create` | Creates a new request in the `CREATED` state                                  |
+| `DELETE` | `/requests/{requestId}` | Deletes a request in the `CREATED` state                                      |
+| `POST` | `/requests/{requestId}/verify` | Verifies a request and hanges the request state from `CREATED` to `VERIFIED`  |
+| `POST` | `/requests/{requestId}/accept` | Accepts a request and changes the request state from `VERIFIED` to `ACCEPTED` |
+| `POST` | `/requests/{requestId}/reject` | Rejects a request in the `VERIFIED` or `ACCEPTED` state                       |
+| `POST` | `/requests/{requestId}/publish` | Publishes a request in the `ACCEPTED` state                                   |
+| `PUT` | `/requests/{requestId}/update` | Updates the body of a request in the `CREATED` or `VERIFIED` state            |
+| `GET` | `/requests/browse` | Returns a paginated and optionally filtered list of requests                  |
+| `GET` | `/requests/{requestId}/auditlog` | Returns the complete audit history of a request                               |
+
+Detailed descriptions, request and response schemas, validation constraints, and available parameters are documented in Swagger UI.
 
 ## Browsing Requests
 
 Requests can be browsed using:
 
 ```http
-GET /browse
+GET /requests/browse
 ```
 
 Pagination is supported through the following query parameters:
@@ -202,7 +204,7 @@ Pagination is supported through the following query parameters:
 For example:
 
 ```http
-GET /browse?page=0&size=10&state=VERIFIED
+GET /requests/browse?page=0&size=10&state=VERIFIED
 ```
 
 Requests can be filtered by:
@@ -236,7 +238,7 @@ Each audit entry represents a snapshot of the request at a particular point in t
 The audit history can be retrieved using:
 
 ```http
-GET /auditlog/{requestId}
+GET /requests/{requestId}/auditlog
 ```
 
 Entries are returned chronologically by the `changedAt` timestamp.

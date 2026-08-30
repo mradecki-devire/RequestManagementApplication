@@ -65,7 +65,7 @@ public class RequestControllerIntegrationTest {
         // given
         CreateRequest createRequest = new CreateRequest("requestName", "requestBody");
         // when
-        MvcResult result = mockMvc.perform(post("/create")
+        MvcResult result = mockMvc.perform(post("/requests/create")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(createRequest))
         ).andReturn();
@@ -95,7 +95,7 @@ public class RequestControllerIntegrationTest {
         // given
         CreateRequest createRequest = new CreateRequest(null, "requestBody");
         // when
-        MvcResult result = mockMvc.perform(post("/create")
+        MvcResult result = mockMvc.perform(post("/requests/create")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(createRequest))
         ).andReturn();
@@ -109,7 +109,7 @@ public class RequestControllerIntegrationTest {
         // given
         CreateRequest createRequest = new CreateRequest("", "requestBody");
         // when
-        MvcResult result = mockMvc.perform(post("/create")
+        MvcResult result = mockMvc.perform(post("/requests/create")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(createRequest))
         ).andReturn();
@@ -123,7 +123,7 @@ public class RequestControllerIntegrationTest {
         // given
         CreateRequest createRequest = new CreateRequest("requestName", null);
         // when
-        MvcResult result = mockMvc.perform(post("/create")
+        MvcResult result = mockMvc.perform(post("/requests/create")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(createRequest))
         ).andReturn();
@@ -137,7 +137,7 @@ public class RequestControllerIntegrationTest {
         // given
         CreateRequest createRequest = new CreateRequest("requestName", "");
         // when
-        MvcResult result = mockMvc.perform(post("/create")
+        MvcResult result = mockMvc.perform(post("/requests/create")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(createRequest))
         ).andReturn();
@@ -150,7 +150,7 @@ public class RequestControllerIntegrationTest {
     void when_trying_to_delete_request_in_created_state_then_should_set_state_to_deleted() throws Exception {
         // given
         CreateRequest createRequest = new CreateRequest("requestName", "requestBody");
-        MvcResult createResult = mockMvc.perform(post("/create")
+        MvcResult createResult = mockMvc.perform(post("/requests/create")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(createRequest))
         ).andReturn();
@@ -159,7 +159,7 @@ public class RequestControllerIntegrationTest {
         String reason = "request is no longer needed";
         RequestWithReason requestWithReason = new RequestWithReason(reason);
         // when
-        MvcResult deleteResult = mockMvc.perform(delete("/" + requestId)
+        MvcResult deleteResult = mockMvc.perform(delete("/requests/" + requestId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(requestWithReason))
         ).andReturn();
@@ -190,7 +190,7 @@ public class RequestControllerIntegrationTest {
     void when_trying_to_delete_request_in_different_state_than_created_then_should_return_bad_request_response() throws Exception {
         // given
         CreateRequest createRequest = new CreateRequest("requestName", "requestBody");
-        MvcResult createResult = mockMvc.perform(post("/create")
+        MvcResult createResult = mockMvc.perform(post("/requests/create")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(createRequest))
         ).andReturn();
@@ -199,7 +199,7 @@ public class RequestControllerIntegrationTest {
         String reason = "request is no longer needed";
         RequestWithReason requestWithReason = new RequestWithReason(reason);
         // when
-        MvcResult deleteResult = mockMvc.perform(delete("/" + requestId)
+        MvcResult deleteResult = mockMvc.perform(delete("/requests/" + requestId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(requestWithReason))
         ).andReturn();
@@ -211,7 +211,7 @@ public class RequestControllerIntegrationTest {
         assertThat(requestEntity.getState()).isEqualTo(RequestState.DELETED);
         assertThat(requestEntity.getReason()).isEqualTo(reason);
         // when
-        MvcResult deleteResult2 = mockMvc.perform(delete("/" + requestId)
+        MvcResult deleteResult2 = mockMvc.perform(delete("/requests/" + requestId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(requestWithReason))
         ).andReturn();
@@ -226,14 +226,14 @@ public class RequestControllerIntegrationTest {
     void when_trying_to_verify_request_in_created_state_then_should_set_state_to_verified() throws Exception {
         // given
         CreateRequest createRequest = new CreateRequest("requestName", "requestBody");
-        MvcResult createResult = mockMvc.perform(post("/create")
+        MvcResult createResult = mockMvc.perform(post("/requests/create")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(createRequest))
         ).andReturn();
         RequestCreatedResponse requestCreatedResponse = objectMapper.readValue(createResult.getResponse().getContentAsString(), RequestCreatedResponse.class);
         Integer requestId = requestCreatedResponse.id();
         // when
-        MvcResult verifyResult = mockMvc.perform(post("/verify/" + requestId)
+        MvcResult verifyResult = mockMvc.perform(post("/requests/" + requestId + "/verify")
                 .contentType(MediaType.APPLICATION_JSON)
         ).andReturn();
         // then
@@ -262,7 +262,7 @@ public class RequestControllerIntegrationTest {
     void when_trying_to_verify_request_in_different_state_than_created_then_should_return_bad_request_response() throws Exception {
         // given
         CreateRequest createRequest = new CreateRequest("requestName", "requestBody");
-        MvcResult createResult = mockMvc.perform(post("/create")
+        MvcResult createResult = mockMvc.perform(post("/requests/create")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(createRequest))
         ).andReturn();
@@ -271,7 +271,7 @@ public class RequestControllerIntegrationTest {
         String reason = "request is no longer needed";
         RequestWithReason requestWithReason = new RequestWithReason(reason);
         // when
-        MvcResult deleteResult = mockMvc.perform(delete("/" + requestId)
+        MvcResult deleteResult = mockMvc.perform(delete("/requests/" + requestId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(requestWithReason))
         ).andReturn();
@@ -283,7 +283,7 @@ public class RequestControllerIntegrationTest {
         assertThat(requestEntity.getState()).isEqualTo(RequestState.DELETED);
         assertThat(requestEntity.getReason()).isEqualTo(reason);
         // when
-        MvcResult verifyResult = mockMvc.perform(post("/verify/" + requestId)
+        MvcResult verifyResult = mockMvc.perform(post("/requests/" + requestId + "/verify")
                 .contentType(MediaType.APPLICATION_JSON)
         ).andReturn();
         // then
@@ -298,14 +298,14 @@ public class RequestControllerIntegrationTest {
     void when_trying_to_accept_request_in_verified_state_then_should_set_state_to_accepted() throws Exception {
         // given
         CreateRequest createRequest = new CreateRequest("requestName", "requestBody");
-        MvcResult createResult = mockMvc.perform(post("/create")
+        MvcResult createResult = mockMvc.perform(post("/requests/create")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(createRequest))
         ).andReturn();
         RequestCreatedResponse requestCreatedResponse = objectMapper.readValue(createResult.getResponse().getContentAsString(), RequestCreatedResponse.class);
         Integer requestId = requestCreatedResponse.id();
         // when
-        MvcResult verifyResult = mockMvc.perform(post("/verify/" + requestId)
+        MvcResult verifyResult = mockMvc.perform(post("/requests/" + requestId + "/verify")
                 .contentType(MediaType.APPLICATION_JSON)
         ).andReturn();
         // then
@@ -315,7 +315,7 @@ public class RequestControllerIntegrationTest {
         RequestEntity requestEntity = requestEntityOpt.get();
         assertThat(requestEntity.getState()).isEqualTo(RequestState.VERIFIED);
         // when
-        MvcResult acceptedResult = mockMvc.perform(post("/accept/" + requestId)
+        MvcResult acceptedResult = mockMvc.perform(post("/requests/" + requestId + "/accept")
                 .contentType(MediaType.APPLICATION_JSON)
         ).andReturn();
         // then
@@ -348,14 +348,14 @@ public class RequestControllerIntegrationTest {
     void when_trying_to_accept_request_in_different_state_than_verified_then_should_not_change_state_and_throw_exception() throws Exception {
         // given
         CreateRequest createRequest = new CreateRequest("requestName", "requestBody");
-        MvcResult createResult = mockMvc.perform(post("/create")
+        MvcResult createResult = mockMvc.perform(post("/requests/create")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(createRequest))
         ).andReturn();
         RequestCreatedResponse requestCreatedResponse = objectMapper.readValue(createResult.getResponse().getContentAsString(), RequestCreatedResponse.class);
         Integer requestId = requestCreatedResponse.id();
         // when
-        MvcResult acceptedResult = mockMvc.perform(post("/accept/" + requestId)
+        MvcResult acceptedResult = mockMvc.perform(post("/requests/" + requestId + "/accept")
                 .contentType(MediaType.APPLICATION_JSON)
         ).andReturn();
         // then
@@ -374,14 +374,14 @@ public class RequestControllerIntegrationTest {
     void when_trying_to_reject_request_in_verified_state_then_should_set_state_to_rejected() throws Exception {
         // given
         CreateRequest createRequest = new CreateRequest("requestName", "requestBody");
-        MvcResult createResult = mockMvc.perform(post("/create")
+        MvcResult createResult = mockMvc.perform(post("/requests/create")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(createRequest))
         ).andReturn();
         RequestCreatedResponse requestCreatedResponse = objectMapper.readValue(createResult.getResponse().getContentAsString(), RequestCreatedResponse.class);
         Integer requestId = requestCreatedResponse.id();
         // when
-        MvcResult deleteResult = mockMvc.perform(post("/verify/" + requestId)
+        MvcResult deleteResult = mockMvc.perform(post("/requests/" + requestId + "/verify")
                 .contentType(MediaType.APPLICATION_JSON)
         ).andReturn();
         // then
@@ -391,7 +391,7 @@ public class RequestControllerIntegrationTest {
         RequestEntity verifiedRequestEntity = verifiedRequestEntityOpt.get();
         assertThat(verifiedRequestEntity.getState()).isEqualTo(RequestState.VERIFIED);
         // when
-        MvcResult rejectedResult = mockMvc.perform(post("/reject/" + requestId)
+        MvcResult rejectedResult = mockMvc.perform(post("/requests/" + requestId + "/reject")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(new RequestWithReason("request is no longer needed")))
         ).andReturn();
@@ -426,14 +426,14 @@ public class RequestControllerIntegrationTest {
     void when_trying_to_reject_request_in_different_state_than_verified_or_accepted_then_should_not_change_state_and_throw_exception() throws Exception {
         // given
         CreateRequest createRequest = new CreateRequest("requestName", "requestBody");
-        MvcResult createResult = mockMvc.perform(post("/create")
+        MvcResult createResult = mockMvc.perform(post("/requests/create")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(createRequest))
         ).andReturn();
         RequestCreatedResponse requestCreatedResponse = objectMapper.readValue(createResult.getResponse().getContentAsString(), RequestCreatedResponse.class);
         Integer requestId = requestCreatedResponse.id();
         // when
-        MvcResult rejectedResult = mockMvc.perform(post("/reject/" + requestId)
+        MvcResult rejectedResult = mockMvc.perform(post("/requests/" + requestId + "/reject")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(new RequestWithReason("request is no longer needed")))
         ).andReturn();
@@ -453,14 +453,14 @@ public class RequestControllerIntegrationTest {
     void when_trying_to_publish_request_in_accepted_state_then_should_set_state_to_published() throws Exception {
         // given
         CreateRequest createRequest = new CreateRequest("requestName", "requestBody");
-        MvcResult createResult = mockMvc.perform(post("/create")
+        MvcResult createResult = mockMvc.perform(post("/requests/create")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(createRequest))
         ).andReturn();
         RequestCreatedResponse requestCreatedResponse = objectMapper.readValue(createResult.getResponse().getContentAsString(), RequestCreatedResponse.class);
         Integer requestId = requestCreatedResponse.id();
         // when
-        MvcResult verifyResult = mockMvc.perform(post("/verify/" + requestId)
+        MvcResult verifyResult = mockMvc.perform(post("/requests/" + requestId + "/verify")
                 .contentType(MediaType.APPLICATION_JSON)
         ).andReturn();
         // then
@@ -470,7 +470,7 @@ public class RequestControllerIntegrationTest {
         RequestEntity requestEntity = requestEntityOpt.get();
         assertThat(requestEntity.getState()).isEqualTo(RequestState.VERIFIED);
         // when
-        MvcResult acceptedResult = mockMvc.perform(post("/accept/" + requestId)
+        MvcResult acceptedResult = mockMvc.perform(post("/requests/" + requestId + "/accept")
                 .contentType(MediaType.APPLICATION_JSON)
         ).andReturn();
         // then
@@ -480,7 +480,7 @@ public class RequestControllerIntegrationTest {
         RequestEntity acceptedRequestEntity = acceptedRequestEntityOpt.get();
         assertThat(acceptedRequestEntity.getState()).isEqualTo(RequestState.ACCEPTED);
         // when
-        MvcResult publishedResult = mockMvc.perform(post("/publish/" + requestId)
+        MvcResult publishedResult = mockMvc.perform(post("/requests/" + requestId + "/publish")
                 .contentType(MediaType.APPLICATION_JSON)
         ).andReturn();
         // then
@@ -526,14 +526,14 @@ public class RequestControllerIntegrationTest {
     void when_trying_to_publish_request_in_different_state_than_accepted_then_should_not_change_state_and_throw_exception() throws Exception {
         // given
         CreateRequest createRequest = new CreateRequest("requestName", "requestBody");
-        MvcResult createResult = mockMvc.perform(post("/create")
+        MvcResult createResult = mockMvc.perform(post("/requests/create")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(createRequest))
         ).andReturn();
         RequestCreatedResponse requestCreatedResponse = objectMapper.readValue(createResult.getResponse().getContentAsString(), RequestCreatedResponse.class);
         Integer requestId = requestCreatedResponse.id();
         // when
-        MvcResult publishedResult = mockMvc.perform(post("/publish/" + requestId)
+        MvcResult publishedResult = mockMvc.perform(post("/requests/" + requestId + "/publish")
                 .contentType(MediaType.APPLICATION_JSON)
         ).andReturn();
         // then
@@ -552,14 +552,14 @@ public class RequestControllerIntegrationTest {
     void when_trying_to_update_body_in_request_with_created_or_verified_state_then_should_update_body() throws Exception {
         // given
         CreateRequest createRequest = new CreateRequest("requestName", "requestBody");
-        MvcResult createResult = mockMvc.perform(post("/create")
+        MvcResult createResult = mockMvc.perform(post("/requests/create")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(createRequest))
         ).andReturn();
         RequestCreatedResponse requestCreatedResponse = objectMapper.readValue(createResult.getResponse().getContentAsString(), RequestCreatedResponse.class);
         Integer requestId = requestCreatedResponse.id();
         // when
-        MvcResult verifyResult = mockMvc.perform(post("/verify/" + requestId)
+        MvcResult verifyResult = mockMvc.perform(post("/requests/" + requestId + "/verify")
                 .contentType(MediaType.APPLICATION_JSON)
         ).andReturn();
         // then
@@ -569,7 +569,7 @@ public class RequestControllerIntegrationTest {
         RequestEntity requestEntity = requestEntityOpt.get();
         assertThat(requestEntity.getState()).isEqualTo(RequestState.VERIFIED);
         // when
-        MvcResult updatedResult = mockMvc.perform(put("/update/" + requestId)
+        MvcResult updatedResult = mockMvc.perform(put("/requests/" + requestId + "/update")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(new UpdateBodyRequest("updatedRequestBody")))
         ).andReturn();
@@ -605,14 +605,14 @@ public class RequestControllerIntegrationTest {
     void when_trying_to_update_body_in_request_using_empty_body_then_should_throw_exception() throws Exception {
         // given
         CreateRequest createRequest = new CreateRequest("requestName", "requestBody");
-        MvcResult createResult = mockMvc.perform(post("/create")
+        MvcResult createResult = mockMvc.perform(post("/requests/create")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(createRequest))
         ).andReturn();
         RequestCreatedResponse requestCreatedResponse = objectMapper.readValue(createResult.getResponse().getContentAsString(), RequestCreatedResponse.class);
         Integer requestId = requestCreatedResponse.id();
         // when
-        MvcResult verifyResult = mockMvc.perform(post("/verify/" + requestId)
+        MvcResult verifyResult = mockMvc.perform(post("/requests/" + requestId + "/verify")
                 .contentType(MediaType.APPLICATION_JSON)
         ).andReturn();
         // then
@@ -622,7 +622,7 @@ public class RequestControllerIntegrationTest {
         RequestEntity requestEntity = requestEntityOpt.get();
         assertThat(requestEntity.getState()).isEqualTo(RequestState.VERIFIED);
         // when
-        MvcResult updatedResult = mockMvc.perform(put("/update/" + requestId)
+        MvcResult updatedResult = mockMvc.perform(put("/requests/" + requestId + "/update")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(new UpdateBodyRequest("")))
         ).andReturn();
@@ -630,7 +630,7 @@ public class RequestControllerIntegrationTest {
         assertThat(updatedResult.getResponse().getStatus()).isEqualTo(400);
         assertThat(updatedResult.getResponse().getErrorMessage()).isEqualTo("Invalid request content.");
         // when
-        MvcResult updatedResult2 = mockMvc.perform(put("/update/" + requestId)
+        MvcResult updatedResult2 = mockMvc.perform(put("/requests/" + requestId + "/update")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(new UpdateBodyRequest(null)))
         ).andReturn();
@@ -643,14 +643,14 @@ public class RequestControllerIntegrationTest {
     void when_trying_to_update_body_in_request_with_different_state_than_created_or_verified_then_should_not_update_body_and_throw_exception() throws Exception {
         // given
         CreateRequest createRequest = new CreateRequest("requestName", "requestBody");
-        MvcResult createResult = mockMvc.perform(post("/create")
+        MvcResult createResult = mockMvc.perform(post("/requests/create")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(createRequest))
         ).andReturn();
         RequestCreatedResponse requestCreatedResponse = objectMapper.readValue(createResult.getResponse().getContentAsString(), RequestCreatedResponse.class);
         Integer requestId = requestCreatedResponse.id();
         // when
-        MvcResult verifyResult = mockMvc.perform(delete("/" + requestId)
+        MvcResult verifyResult = mockMvc.perform(delete("/requests/" + requestId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(new RequestWithReason("request is no longer needed")))
         ).andReturn();
@@ -661,7 +661,7 @@ public class RequestControllerIntegrationTest {
         RequestEntity requestEntity = requestEntityOpt.get();
         assertThat(requestEntity.getState()).isEqualTo(RequestState.DELETED);
         // when
-        MvcResult updatedResult = mockMvc.perform(put("/update/" + requestId)
+        MvcResult updatedResult = mockMvc.perform(put("/requests/" + requestId + "/update")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(new UpdateBodyRequest("updatedRequestBody")))
         ).andReturn();
@@ -687,7 +687,7 @@ public class RequestControllerIntegrationTest {
             requestIds.add(id);
         }
         // when
-        MvcResult createResult = mockMvc.perform(get("/browse")
+        MvcResult createResult = mockMvc.perform(get("/requests/browse")
                 .contentType(MediaType.APPLICATION_JSON)
         ).andReturn();
         PageResponse<RequestDto> page = objectMapper.readValue(createResult.getResponse().getContentAsString(), new TypeReference<PageResponse<RequestDto>>() {
@@ -716,7 +716,7 @@ public class RequestControllerIntegrationTest {
             requestIds.add(id);
         }
         // when
-        MvcResult createResult = mockMvc.perform(get("/browse?page=1")
+        MvcResult createResult = mockMvc.perform(get("/requests/browse?page=1")
                 .contentType(MediaType.APPLICATION_JSON)
         ).andReturn();
         PageResponse<RequestDto> page = objectMapper.readValue(createResult.getResponse().getContentAsString(), new TypeReference<PageResponse<RequestDto>>() {
@@ -745,7 +745,7 @@ public class RequestControllerIntegrationTest {
             requestIds.add(id);
         }
         // when
-        MvcResult createResult = mockMvc.perform(get("/browse?name=name_1")
+        MvcResult createResult = mockMvc.perform(get("/requests/browse?name=name_1")
                 .contentType(MediaType.APPLICATION_JSON)
         ).andReturn();
         PageResponse<RequestDto> page = objectMapper.readValue(createResult.getResponse().getContentAsString(), new TypeReference<PageResponse<RequestDto>>() {
@@ -781,7 +781,7 @@ public class RequestControllerIntegrationTest {
             counter++;
         }
         // when
-        MvcResult createResult = mockMvc.perform(get("/browse?state=VERIFIED")
+        MvcResult createResult = mockMvc.perform(get("/requests/browse?state=VERIFIED")
                 .contentType(MediaType.APPLICATION_JSON)
         ).andReturn();
         PageResponse<RequestDto> page = objectMapper.readValue(createResult.getResponse().getContentAsString(), new TypeReference<PageResponse<RequestDto>>() {
@@ -805,14 +805,14 @@ public class RequestControllerIntegrationTest {
     void when_trying_to_get_audit_then_should_return_record_for_every_request_state_of_specific_request() throws Exception {
         // given
         CreateRequest createRequest = new CreateRequest("requestName", "requestBody");
-        MvcResult createResult = mockMvc.perform(post("/create")
+        MvcResult createResult = mockMvc.perform(post("/requests/create")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(createRequest))
         ).andReturn();
         RequestCreatedResponse requestCreatedResponse = objectMapper.readValue(createResult.getResponse().getContentAsString(), RequestCreatedResponse.class);
         Integer requestId = requestCreatedResponse.id();
         // when
-        MvcResult verifyResult = mockMvc.perform(post("/verify/" + requestId)
+        MvcResult verifyResult = mockMvc.perform(post("/requests/" + requestId + "/verify")
                 .contentType(MediaType.APPLICATION_JSON)
         ).andReturn();
         // then
@@ -822,7 +822,7 @@ public class RequestControllerIntegrationTest {
         RequestEntity requestEntity = requestEntityOpt.get();
         assertThat(requestEntity.getState()).isEqualTo(RequestState.VERIFIED);
         // when
-        MvcResult acceptedResult = mockMvc.perform(post("/accept/" + requestId)
+        MvcResult acceptedResult = mockMvc.perform(post("/requests/" + requestId + "/accept")
                 .contentType(MediaType.APPLICATION_JSON)
         ).andReturn();
         // then
@@ -832,7 +832,7 @@ public class RequestControllerIntegrationTest {
         RequestEntity acceptedRequestEntity = acceptedRequestEntityOpt.get();
         assertThat(acceptedRequestEntity.getState()).isEqualTo(RequestState.ACCEPTED);
         // when
-        MvcResult publishedResult = mockMvc.perform(post("/publish/" + requestId)
+        MvcResult publishedResult = mockMvc.perform(post("/requests/" + requestId + "/publish")
                 .contentType(MediaType.APPLICATION_JSON)
         ).andReturn();
         // then
@@ -845,7 +845,7 @@ public class RequestControllerIntegrationTest {
         assertThat(publishedRequestEntity.getPublicationIdentifier()).isNotBlank();
         assertThat(publishedRequestEntity.getPublicationIdentifier().chars()).allMatch(Character::isDigit);
         // when
-        MvcResult auditlogResult = mockMvc.perform(get("/auditlog/" + requestId)
+        MvcResult auditlogResult = mockMvc.perform(get("/requests/" + requestId + "/auditlog")
                 .contentType(MediaType.APPLICATION_JSON)
         ).andReturn();
         // then
@@ -878,7 +878,7 @@ public class RequestControllerIntegrationTest {
     void when_trying_to_get_audit_for_not_existing_request_id_then_should_return_not_found_response() throws Exception {
         // given
         // when
-        MvcResult auditlogResult = mockMvc.perform(get("/auditlog/1")
+        MvcResult auditlogResult = mockMvc.perform(get("/requests/1/auditlog")
                 .contentType(MediaType.APPLICATION_JSON)
         ).andReturn();
         // then
@@ -889,7 +889,7 @@ public class RequestControllerIntegrationTest {
 
         private Integer createRequest(String name, String body) throws Exception {
         CreateRequest createRequest = new CreateRequest(name, body);
-        MvcResult createResult = mockMvc.perform(post("/create")
+        MvcResult createResult = mockMvc.perform(post("/requests/create")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(createRequest))
         ).andReturn();
@@ -898,7 +898,7 @@ public class RequestControllerIntegrationTest {
     }
 
     private void verifyRequest(Integer id) throws Exception {
-        mockMvc.perform(post("/verify/" + id)
+        mockMvc.perform(post("/requests/" + id + "/verify")
                 .contentType(MediaType.APPLICATION_JSON)
         ).andReturn();
     }

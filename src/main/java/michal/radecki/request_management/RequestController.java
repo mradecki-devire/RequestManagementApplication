@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
@@ -29,6 +30,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
+@RequestMapping("requests")
 @RequiredArgsConstructor
 @Validated
 public class RequestController {
@@ -37,7 +39,7 @@ public class RequestController {
 
     @Operation(
             summary = "Create request",
-            description = "Creates a new request with CREATED state. Both name and body fields are required and can not be empty."
+            description = "Creates a new request with CREATED state. Both name and body fields are required and can not be blank."
     )
     @PostMapping("create")
     @ResponseStatus(HttpStatus.CREATED)
@@ -61,7 +63,7 @@ public class RequestController {
             description = "Changes the state of the request with the given id to VERIFIED. " +
                     "Request can be verified only when it is in CREATED state."
     )
-    @PostMapping("verify/{requestId}")
+    @PostMapping("{requestId}/verify")
     @ResponseStatus(HttpStatus.OK)
     public void verifyRequest(@PathVariable Integer requestId) {
         requestService.verifyRequest(requestId);
@@ -72,7 +74,7 @@ public class RequestController {
             description = "Changes the state of the request with the given request id to ACCEPTED. " +
                     "Request can be accepted only when it is in VERIFIED state."
     )
-    @PostMapping("accept/{requestId}")
+    @PostMapping("{requestId}/accept")
     @ResponseStatus(HttpStatus.OK)
     public void acceptRequest(@PathVariable Integer requestId) {
         requestService.acceptRequest(requestId);
@@ -83,7 +85,7 @@ public class RequestController {
             description = "Changes the state of the request with the given id to REJECTED. A rejection reason is required. " +
                     "Request can be rejected only when it is in VERIFIED or ACCEPTED state."
     )
-    @PostMapping("reject/{requestId}")
+    @PostMapping("{requestId}/reject")
     @ResponseStatus(HttpStatus.OK)
     public void rejectRequest(@PathVariable Integer requestId, @RequestBody @Valid RequestWithReason request) {
         requestService.rejectRequest(requestId, request.reason());
@@ -94,7 +96,7 @@ public class RequestController {
             description = "Changes the state of the request with the given id to PUBLISHED and assigns a unique numeric publication identifier. " +
                     "Request can be published only when it is in ACCEPTED state."
     )
-    @PostMapping("publish/{requestId}")
+    @PostMapping("{requestId}/publish")
     @ResponseStatus(HttpStatus.OK)
     public RequestPublishResponse publishRequest(@PathVariable Integer requestId) {
         return requestService.publishRequest(requestId);
@@ -104,7 +106,7 @@ public class RequestController {
             summary = "Update request body",
             description = "Updates the body of the request with the given id. The body can only be modified when the request is in CREATED or VERIFIED state"
     )
-    @PutMapping("update/{requestId}")
+    @PutMapping("{requestId}/update")
     @ResponseStatus(HttpStatus.OK)
     public void updateBody(@PathVariable Integer requestId, @RequestBody @Valid UpdateBodyRequest request) {
         requestService.updateBody(requestId, request);
@@ -139,7 +141,7 @@ public class RequestController {
             summary = "Get request audit log",
             description = "Returns the complete audit history of relevant request changes for the given request id"
     )
-    @GetMapping("auditlog/{requestId}")
+    @GetMapping("{requestId}/auditlog")
     @ResponseStatus(HttpStatus.OK)
     public List<RequestStateHistoryDto> getAuditLog(@PathVariable Integer requestId) {
         return requestService.getAuditLog(requestId);
