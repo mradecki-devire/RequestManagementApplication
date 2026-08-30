@@ -181,4 +181,47 @@ public class RequestServiceTest {
                 " cannot be accepted because it is in " + state.name() + " state" +
                 ", not in VERIFIED state");
     }
+
+    @Test
+    void when_trying_to_reject_request_in_verified_state_then_should_set_state_to_rejected() {
+        //given
+        Integer id = 127345;
+        RequestEntity requestEntity = new RequestEntity("requestName", "requestBody", RequestState.VERIFIED);
+        requestEntity.setId(id);
+        when(mockedRequestRepository.findById(id)).thenReturn(Optional.of(requestEntity));
+        //when //then
+        assertDoesNotThrow(() -> requestService.rejectRequest(id, "request is no longer needed"));
+    }
+
+    @Test
+    void when_trying_to_reject_not_existing_request_then_should_throw_not_found_exception() {
+        //given
+        Integer id = 127345;
+        when(mockedRequestRepository.findById(id)).thenReturn(Optional.empty());
+        //when //then
+        RequestNotFoundException exception = assertThrows(RequestNotFoundException.class,
+                () -> requestService.rejectRequest(id, "request is no longer needed"));
+        assertThat(exception.getMessage()).isEqualTo("Request with id " + id + " not found");
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            "CREATED",
+            "PUBLISHED",
+            "DELETED",
+            "REJECTED"
+    })
+    void when_trying_to_reject_request_in_state_different_than_verified_or_accepted_then_should_throw_exception(RequestState state) {
+        //given
+        Integer id = 127345;
+        RequestEntity requestEntity = new RequestEntity("requestName", "requestBody", state);
+        requestEntity.setId(id);
+        when(mockedRequestRepository.findById(id)).thenReturn(Optional.of(requestEntity));
+        //when //then
+        RequestCannotBeProcessedException exception = assertThrows(RequestCannotBeProcessedException.class,
+                () -> requestService.rejectRequest(id, "request is no longer needed"));
+        assertThat(exception.getMessage()).isEqualTo("Request with id " + id +
+                " cannot be rejected because it is in " + state.name() + " state" +
+                ", not in VERIFIED or ACCEPTED state");
+    }
 }

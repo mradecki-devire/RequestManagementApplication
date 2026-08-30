@@ -1,7 +1,7 @@
 package michal.radecki.request_management;
 
 import michal.radecki.request_management.request.CreateRequest;
-import michal.radecki.request_management.request.DeleteRequest;
+import michal.radecki.request_management.request.RequestWithReason;
 import michal.radecki.request_management.response.CustomErrorResponse;
 import michal.radecki.request_management.response.RequestCreatedResponse;
 import org.junit.jupiter.api.Test;
@@ -123,11 +123,11 @@ public class RequestControllerTest {
         RequestCreatedResponse requestCreatedResponse = objectMapper.readValue(createResult.getResponse().getContentAsString(), RequestCreatedResponse.class);
         Integer requestId = requestCreatedResponse.id();
         String reason = "request is no longer needed";
-        DeleteRequest deleteRequest = new DeleteRequest(reason);
+        RequestWithReason requestWithReason = new RequestWithReason(reason);
         // when
         MvcResult deleteResult = mockMvc.perform(delete("/" + requestId)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(deleteRequest))
+                .content(objectMapper.writeValueAsString(requestWithReason))
         ).andReturn();
         // then
         assertThat(deleteResult.getResponse().getStatus()).isEqualTo(200);
@@ -149,11 +149,11 @@ public class RequestControllerTest {
         RequestCreatedResponse requestCreatedResponse = objectMapper.readValue(createResult.getResponse().getContentAsString(), RequestCreatedResponse.class);
         Integer requestId = requestCreatedResponse.id();
         String reason = "request is no longer needed";
-        DeleteRequest deleteRequest = new DeleteRequest(reason);
+        RequestWithReason requestWithReason = new RequestWithReason(reason);
         // when
         MvcResult deleteResult = mockMvc.perform(delete("/" + requestId)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(deleteRequest))
+                .content(objectMapper.writeValueAsString(requestWithReason))
         ).andReturn();
         // then
         assertThat(deleteResult.getResponse().getStatus()).isEqualTo(200);
@@ -165,7 +165,7 @@ public class RequestControllerTest {
         // when
         MvcResult deleteResult2 = mockMvc.perform(delete("/" + requestId)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(deleteRequest))
+                .content(objectMapper.writeValueAsString(requestWithReason))
         ).andReturn();
         // then
         assertThat(deleteResult2.getResponse().getStatus()).isEqualTo(400);
@@ -207,11 +207,11 @@ public class RequestControllerTest {
         RequestCreatedResponse requestCreatedResponse = objectMapper.readValue(createResult.getResponse().getContentAsString(), RequestCreatedResponse.class);
         Integer requestId = requestCreatedResponse.id();
         String reason = "request is no longer needed";
-        DeleteRequest deleteRequest = new DeleteRequest(reason);
+        RequestWithReason requestWithReason = new RequestWithReason(reason);
         // when
         MvcResult deleteResult = mockMvc.perform(delete("/" + requestId)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(deleteRequest))
+                .content(objectMapper.writeValueAsString(requestWithReason))
         ).andReturn();
         // then
         assertThat(deleteResult.getResponse().getStatus()).isEqualTo(200);
@@ -288,5 +288,66 @@ public class RequestControllerTest {
         assertThat(errorResponse.message()).isEqualTo("Request with id " + requestId +
                 " cannot be accepted because it is in CREATED state" +
                 ", not in VERIFIED state");
+    }
+
+    @Test
+    void when_trying_to_reject_request_in_verified_state_then_should_set_state_to_rejected() throws Exception {
+        // given
+        CreateRequest createRequest = new CreateRequest("requestName", "requestBody");
+        MvcResult createResult = mockMvc.perform(post("/create")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(createRequest))
+        ).andReturn();
+        RequestCreatedResponse requestCreatedResponse = objectMapper.readValue(createResult.getResponse().getContentAsString(), RequestCreatedResponse.class);
+        Integer requestId = requestCreatedResponse.id();
+        // when
+        MvcResult deleteResult = mockMvc.perform(post("/verify/" + requestId)
+                .contentType(MediaType.APPLICATION_JSON)
+        ).andReturn();
+        // then
+        assertThat(deleteResult.getResponse().getStatus()).isEqualTo(200);
+        Optional<RequestEntity> requestEntityOpt = requestRepository.findById(requestId);
+        assertThat(requestEntityOpt).isPresent();
+        RequestEntity requestEntity = requestEntityOpt.get();
+        assertThat(requestEntity.getState()).isEqualTo(RequestState.VERIFIED);
+        // when
+        MvcResult acceptedResult = mockMvc.perform(post("/reject/" + requestId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(new RequestWithReason("request is no longer needed")))
+        ).andReturn();
+        // then
+        assertThat(acceptedResult.getResponse().getStatus()).isEqualTo(200);
+        Optional<RequestEntity> requestEntity2Opt = requestRepository.findById(requestId);
+        assertThat(requestEntity2Opt).isPresent();
+        RequestEntity requestEntity2 = requestEntity2Opt.get();
+        assertThat(requestEntity2.getState()).isEqualTo(RequestState.REJECTED);
+        assertThat(requestEntity2.getReason()).isEqualTo("request is no longer needed");
+    }
+
+    @Test
+    void when_trying_to_reject_request_in_different_state_than_verified_or_accepted_then_should_not_change_state_and_throw_exception() throws Exception {
+        // given
+        CreateRequest createRequest = new CreateRequest("requestName", "requestBody");
+        MvcResult createResult = mockMvc.perform(post("/create")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(createRequest))
+        ).andReturn();
+        RequestCreatedResponse requestCreatedResponse = objectMapper.readValue(createResult.getResponse().getContentAsString(), RequestCreatedResponse.class);
+        Integer requestId = requestCreatedResponse.id();
+        // when
+        MvcResult acceptedResult = mockMvc.perform(post("/reject/" + requestId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(new RequestWithReason("request is no longer needed")))
+        ).andReturn();
+        // then
+        assertThat(acceptedResult.getResponse().getStatus()).isEqualTo(400);
+        Optional<RequestEntity> requestEntity2Opt = requestRepository.findById(requestId);
+        assertThat(requestEntity2Opt).isPresent();
+        RequestEntity requestEntity2 = requestEntity2Opt.get();
+        assertThat(requestEntity2.getState()).isEqualTo(RequestState.CREATED);
+        CustomErrorResponse errorResponse = objectMapper.readValue(acceptedResult.getResponse().getContentAsString(), CustomErrorResponse.class);
+        assertThat(errorResponse.message()).isEqualTo("Request with id " + requestId +
+                " cannot be rejected because it is in CREATED state" +
+                ", not in VERIFIED or ACCEPTED state");
     }
 }

@@ -3,7 +3,7 @@ package michal.radecki.request_management;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import michal.radecki.request_management.request.CreateRequest;
-import michal.radecki.request_management.request.DeleteRequest;
+import michal.radecki.request_management.request.RequestWithReason;
 import michal.radecki.request_management.response.RequestCreatedResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -27,7 +27,7 @@ public class RequestController {
 
     @DeleteMapping("{id}")
     @ResponseStatus(HttpStatus.OK)
-    public void deleteRequest(@PathVariable Integer id, @RequestBody @Valid DeleteRequest request) {
+    public void deleteRequest(@PathVariable Integer id, @RequestBody @Valid RequestWithReason request) {
         requestService.deleteRequest(id, request.reason());
     }
 
@@ -41,5 +41,11 @@ public class RequestController {
     @ResponseStatus(HttpStatus.OK)
     public void acceptRequest(@PathVariable Integer id) {
         requestService.acceptRequest(id);
+    }
+
+    @PostMapping("reject/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    public void rejectRequest(@PathVariable Integer id, @RequestBody @Valid RequestWithReason request) {
+        requestService.rejectRequest(id, request.reason());
     }
 }

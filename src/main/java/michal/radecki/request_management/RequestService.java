@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 @Validated
@@ -70,6 +71,23 @@ public class RequestService {
                         ", not in VERIFIED state");
             }
             requestEntity.setState(RequestState.ACCEPTED);
+        }
+    }
+
+    @Transactional
+    void rejectRequest(Integer requestId, String reason) {
+        Optional<RequestEntity> requestEntityOpt = requestRepository.findById(requestId);
+        if (requestEntityOpt.isEmpty()) {
+            throw new RequestNotFoundException(requestId);
+        } else {
+            RequestEntity requestEntity = requestEntityOpt.get();
+            if (!Set.of(RequestState.VERIFIED, RequestState.ACCEPTED).contains(requestEntity.getState())) {
+                throw new RequestCannotBeProcessedException("Request with id " + requestId +
+                        " cannot be rejected because it is in " + requestEntity.getState() + " state" +
+                        ", not in VERIFIED or ACCEPTED state");
+            }
+            requestEntity.setState(RequestState.REJECTED);
+            requestEntity.setReason(reason);
         }
     }
 }
