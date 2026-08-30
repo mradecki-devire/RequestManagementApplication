@@ -5,6 +5,7 @@ import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.EntityTransaction;
 import jakarta.persistence.OptimisticLockException;
 import jakarta.persistence.RollbackException;
+import michal.radecki.request_management.domain.RequestState;
 import michal.radecki.request_management.entity.RequestEntity;
 import michal.radecki.request_management.repository.RequestRepository;
 import org.junit.jupiter.api.Test;

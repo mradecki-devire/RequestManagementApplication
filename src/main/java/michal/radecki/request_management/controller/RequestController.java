@@ -1,4 +1,4 @@
-package michal.radecki.request_management;
+package michal.radecki.request_management.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
+import michal.radecki.request_management.domain.RequestState;
 import michal.radecki.request_management.dto.RequestDto;
 import michal.radecki.request_management.dto.RequestStateHistoryDto;
 import michal.radecki.request_management.request.CreateRequest;
@@ -13,6 +14,7 @@ import michal.radecki.request_management.request.RequestWithReason;
 import michal.radecki.request_management.request.UpdateBodyRequest;
 import michal.radecki.request_management.response.RequestCreatedResponse;
 import michal.radecki.request_management.response.RequestPublishResponse;
+import michal.radecki.request_management.service.RequestService;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;

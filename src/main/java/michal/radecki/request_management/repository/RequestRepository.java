@@ -1,6 +1,6 @@
 package michal.radecki.request_management.repository;
 
-import michal.radecki.request_management.RequestState;
+import michal.radecki.request_management.domain.RequestState;
 import michal.radecki.request_management.entity.RequestEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

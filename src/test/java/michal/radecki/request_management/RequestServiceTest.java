@@ -1,16 +1,19 @@
 package michal.radecki.request_management;
 
+import michal.radecki.request_management.domain.RequestState;
 import michal.radecki.request_management.dto.RequestDto;
 import michal.radecki.request_management.dto.RequestStateHistoryDto;
 import michal.radecki.request_management.entity.RequestEntity;
 import michal.radecki.request_management.entity.RequestStateHistoryEntity;
 import michal.radecki.request_management.exception.RequestCannotBeProcessedException;
 import michal.radecki.request_management.exception.RequestNotFoundException;
+import michal.radecki.request_management.generator.PublicationIdentifierGenerator;
 import michal.radecki.request_management.repository.RequestRepository;
 import michal.radecki.request_management.repository.RequestStateHistoryRepository;
 import michal.radecki.request_management.request.CreateRequest;
 import michal.radecki.request_management.request.UpdateBodyRequest;
 import michal.radecki.request_management.response.RequestPublishResponse;
+import michal.radecki.request_management.service.RequestService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

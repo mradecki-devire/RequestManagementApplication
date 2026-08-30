@@ -1,14 +1,16 @@
-package michal.radecki.request_management;
+package michal.radecki.request_management.service;
 
 import jakarta.annotation.Nullable;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
+import michal.radecki.request_management.domain.RequestState;
 import michal.radecki.request_management.dto.RequestDto;
 import michal.radecki.request_management.dto.RequestStateHistoryDto;
 import michal.radecki.request_management.entity.RequestEntity;
 import michal.radecki.request_management.entity.RequestStateHistoryEntity;
 import michal.radecki.request_management.exception.RequestCannotBeProcessedException;
 import michal.radecki.request_management.exception.RequestNotFoundException;
+import michal.radecki.request_management.generator.PublicationIdentifierGenerator;
 import michal.radecki.request_management.mapper.RequestMapper;
 import michal.radecki.request_management.repository.RequestRepository;
 import michal.radecki.request_management.repository.RequestStateHistoryRepository;
@@ -44,7 +46,7 @@ public class RequestService {
     }
 
     @Transactional
-    Integer createRequest(@Valid CreateRequest request) {
+    public Integer createRequest(@Valid CreateRequest request) {
         RequestEntity entity = RequestMapper.toEntity(request);
         entity = requestRepository.save(entity);
         requestStateHistoryRepository.save(new RequestStateHistoryEntity(entity));
@@ -52,7 +54,7 @@ public class RequestService {
     }
 
     @Transactional
-    void deleteRequest(Integer requestId,
+    public void deleteRequest(Integer requestId,
                        String reason) {
         RequestEntity requestEntity = requestRepository.findById(requestId)
                 .orElseThrow(() -> new RequestNotFoundException(requestId));
@@ -67,7 +69,7 @@ public class RequestService {
     }
 
     @Transactional
-    void verifyRequest(Integer requestId) {
+    public void verifyRequest(Integer requestId) {
         RequestEntity requestEntity = requestRepository.findById(requestId)
                 .orElseThrow(() -> new RequestNotFoundException(requestId));
         if (requestEntity.getState() != RequestState.CREATED) {
@@ -80,7 +82,7 @@ public class RequestService {
     }
 
     @Transactional
-    void acceptRequest(Integer requestId) {
+    public void acceptRequest(Integer requestId) {
         RequestEntity requestEntity = requestRepository.findById(requestId)
                 .orElseThrow(() -> new RequestNotFoundException(requestId));
         if (requestEntity.getState() != RequestState.VERIFIED) {
@@ -93,7 +95,7 @@ public class RequestService {
     }
 
     @Transactional
-    void rejectRequest(Integer requestId,
+    public void rejectRequest(Integer requestId,
                        String reason) {
         RequestEntity requestEntity = requestRepository.findById(requestId)
                 .orElseThrow(() -> new RequestNotFoundException(requestId));
@@ -108,7 +110,7 @@ public class RequestService {
     }
 
     @Transactional
-    RequestPublishResponse publishRequest(Integer requestId) {
+    public RequestPublishResponse publishRequest(Integer requestId) {
         RequestEntity requestEntity = requestRepository.findById(requestId)
                 .orElseThrow(() -> new RequestNotFoundException(requestId));
         if (requestEntity.getState() != RequestState.ACCEPTED) {
@@ -124,7 +126,7 @@ public class RequestService {
     }
 
     @Transactional
-    void updateBody(Integer requestId,
+    public void updateBody(Integer requestId,
                     @Valid UpdateBodyRequest request) {
         RequestEntity requestEntity = requestRepository.findById(requestId)
                 .orElseThrow(() -> new RequestNotFoundException(requestId));
@@ -137,7 +139,7 @@ public class RequestService {
         requestStateHistoryRepository.save(new RequestStateHistoryEntity(requestEntity));
     }
 
-    Page<RequestDto> getRequestsPage(int pageNumber,
+    public Page<RequestDto> getRequestsPage(int pageNumber,
                                      int size,
                                      @Nullable String name,
                                      @Nullable RequestState state) {
@@ -155,7 +157,7 @@ public class RequestService {
         return result.map(RequestMapper::toDto);
     }
 
-    List<RequestStateHistoryDto> getAuditLog(Integer requestId) {
+    public List<RequestStateHistoryDto> getAuditLog(Integer requestId) {
         List<RequestStateHistoryEntity> states = requestStateHistoryRepository.findAllByRequestId(
                 requestId, Sort.by(Sort.Direction.ASC, "changedAt"));
         if (states.isEmpty()) {

@@ -1,6 +1,6 @@
 package michal.radecki.request_management.dto;
 
-import michal.radecki.request_management.RequestState;
+import michal.radecki.request_management.domain.RequestState;
 
 import java.time.LocalDateTime;
 

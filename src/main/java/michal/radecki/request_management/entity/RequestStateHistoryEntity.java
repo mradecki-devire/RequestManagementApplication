@@ -10,7 +10,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import michal.radecki.request_management.RequestState;
+import michal.radecki.request_management.domain.RequestState;
 
 import java.time.LocalDateTime;
 

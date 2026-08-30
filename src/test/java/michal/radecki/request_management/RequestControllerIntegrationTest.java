@@ -1,5 +1,6 @@
 package michal.radecki.request_management;
 
+import michal.radecki.request_management.domain.RequestState;
 import michal.radecki.request_management.dto.RequestDto;
 import michal.radecki.request_management.dto.RequestStateHistoryDto;
 import michal.radecki.request_management.entity.RequestEntity;

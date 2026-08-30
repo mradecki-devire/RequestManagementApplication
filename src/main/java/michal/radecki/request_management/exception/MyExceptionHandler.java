@@ -1,7 +1,5 @@
-package michal.radecki.request_management;
+package michal.radecki.request_management.exception;
 
-import michal.radecki.request_management.exception.RequestCannotBeProcessedException;
-import michal.radecki.request_management.exception.RequestNotFoundException;
 import michal.radecki.request_management.response.CustomErrorResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

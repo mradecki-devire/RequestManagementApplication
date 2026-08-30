@@ -1,4 +1,4 @@
-package michal.radecki.request_management;
+package michal.radecki.request_management.generator;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;

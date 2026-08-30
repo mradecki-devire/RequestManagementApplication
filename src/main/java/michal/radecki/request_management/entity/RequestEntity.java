@@ -12,7 +12,7 @@ import jakarta.persistence.Version;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import michal.radecki.request_management.RequestState;
+import michal.radecki.request_management.domain.RequestState;
 
 @Entity
 @Table(name = "requests")

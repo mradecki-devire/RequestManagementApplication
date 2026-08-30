@@ -1,4 +1,4 @@
-package michal.radecki.request_management;
+package michal.radecki.request_management.generator;
 
 public interface PublicationIdentifierGenerator {
 
